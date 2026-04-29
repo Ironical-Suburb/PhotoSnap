@@ -5,7 +5,11 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
-export default function ProfileSetupScreen() {
+type Props = {
+  onComplete: () => void;
+};
+
+export default function ProfileSetupScreen({ onComplete }: Props) {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,9 +29,12 @@ export default function ProfileSetupScreen() {
       display_name: trimmed,
     });
 
-    if (error) Alert.alert('Error', error.message);
-    // App.tsx re-checks profile on auth state change — no navigation needed
-    setLoading(false);
+    if (error) {
+      Alert.alert('Error', error.message);
+      setLoading(false);
+    } else {
+      onComplete();
+    }
   }
 
   return (

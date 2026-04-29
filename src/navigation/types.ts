@@ -1,11 +1,15 @@
 export type AppStackParamList = {
   Home: undefined;
-  Guess: undefined;
+  Challenges: undefined;
+  Guess: { roundId: string };
   Upload: undefined;
   Leaderboard: undefined;
+  SentChallenges: undefined;
+  History: undefined;
   Friends: undefined;
   FriendSearch: undefined;
   FriendRequests: undefined;
+  FriendStats: { friendId: string; friendName: string };
   Profile: undefined;
 };
 

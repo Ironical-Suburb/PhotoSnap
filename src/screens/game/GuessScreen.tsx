@@ -4,11 +4,18 @@ import {
   StyleSheet, ActivityIndicator, Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { calculateScore } from '../../constants/scoring';
 import type { Photo, Round } from '../../types';
+import type { AppStackParamList } from '../../navigation/types';
+
+type GuessRoute = RouteProp<AppStackParamList, 'Guess'>;
 
 export default function GuessScreen() {
+  const route = useRoute<GuessRoute>();
+  const roundId = route.params?.roundId;
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [round, setRound] = useState<Round | null>(null);
   const [guessDate, setGuessDate] = useState(new Date());
@@ -17,21 +24,15 @@ export default function GuessScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPendingRound();
-  }, []);
+    fetchRound();
+  }, [roundId]);
 
-  async function fetchPendingRound() {
+  async function fetchRound() {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
     const { data } = await supabase
       .from('rounds')
       .select('*, photos(*)')
-      .eq('guesser_id', user.id)
-      .is('guess_date', null)
-      .order('created_at', { ascending: true })
-      .limit(1)
+      .eq('id', roundId)
       .single();
 
     if (data) {
@@ -59,8 +60,7 @@ export default function GuessScreen() {
   if (!photo || !round) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyText}>No photos waiting for your guess!</Text>
-        <Text style={styles.emptySub}>Ask your partner to upload one.</Text>
+        <Text style={styles.emptyText}>Challenge not found.</Text>
       </View>
     );
   }
@@ -71,12 +71,18 @@ export default function GuessScreen() {
 
       <Image source={{ uri: photo.storage_url }} style={styles.photo} />
 
+      {photo.caption ? (
+        <Text style={styles.caption}>{photo.caption}</Text>
+      ) : null}
+
       {result ? (
         <View style={styles.resultBox}>
           <Text style={styles.resultLabel}>{result.label}</Text>
           <Text style={styles.resultPoints}>{result.points} pts</Text>
           <Text style={styles.resultDays}>
-            You were {result.daysOff === 0 ? 'exactly right!' : `${result.daysOff} day${result.daysOff !== 1 ? 's' : ''} off`}
+            {result.daysOff === 0
+              ? 'Exactly right!'
+              : `${result.daysOff} day${result.daysOff !== 1 ? 's' : ''} off`}
           </Text>
           <Text style={styles.resultActual}>
             Actual date: {new Date(photo.actual_date).toDateString()}
@@ -84,7 +90,7 @@ export default function GuessScreen() {
         </View>
       ) : (
         <>
-          <Text style={styles.label}>Your guess:</Text>
+          <Text style={styles.label}>Your guess</Text>
           <TouchableOpacity style={styles.dateBtn} onPress={() => setShowPicker(true)}>
             <Text style={styles.dateBtnText}>{guessDate.toDateString()}</Text>
           </TouchableOpacity>
@@ -112,28 +118,28 @@ export default function GuessScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 20, marginTop: 16 },
-  photo: { width: '100%', height: 260, borderRadius: 16, marginBottom: 24 },
-  label: { fontSize: 14, fontWeight: '600', color: '#444', marginBottom: 8 },
+  title: { fontSize: 22, fontWeight: '700', marginBottom: 18, marginTop: 8 },
+  photo: { width: '100%', height: 240, borderRadius: 16, marginBottom: 12 },
+  caption: { fontSize: 14, color: '#777', marginBottom: 20, fontStyle: 'italic' },
+  label: { fontSize: 13, fontWeight: '600', color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
   dateBtn: {
-    borderWidth: 1, borderColor: '#ddd', borderRadius: 10,
+    borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 10,
     padding: 14, marginBottom: 24,
   },
-  dateBtnText: { fontSize: 16 },
+  dateBtnText: { fontSize: 15 },
   button: {
     backgroundColor: '#4ECDC4', borderRadius: 10,
     padding: 16, alignItems: 'center',
   },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   resultBox: {
     backgroundColor: '#f9f9f9', borderRadius: 16,
     padding: 24, alignItems: 'center',
   },
-  resultLabel: { fontSize: 28, fontWeight: '700', marginBottom: 8 },
-  resultPoints: { fontSize: 48, fontWeight: '900', color: '#FF6B6B', marginBottom: 8 },
-  resultDays: { fontSize: 16, color: '#555', marginBottom: 4 },
-  resultActual: { fontSize: 14, color: '#999' },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  emptyText: { fontSize: 20, fontWeight: '700', marginBottom: 8 },
-  emptySub: { fontSize: 15, color: '#888' },
+  resultLabel: { fontSize: 26, fontWeight: '700', marginBottom: 8 },
+  resultPoints: { fontSize: 52, fontWeight: '900', color: '#FF6B6B', marginBottom: 8 },
+  resultDays: { fontSize: 15, color: '#555', marginBottom: 4 },
+  resultActual: { fontSize: 13, color: '#aaa' },
+  empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyText: { fontSize: 16, color: '#aaa' },
 });
