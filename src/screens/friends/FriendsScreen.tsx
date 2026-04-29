@@ -101,17 +101,26 @@ export default function FriendsScreen() {
         data={friends}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => navigation.navigate('FriendStats', {
+              friendId: item.other_user.id,
+              friendName: item.other_user.display_name,
+            })}
+          >
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
                 {item.other_user.display_name[0].toUpperCase()}
               </Text>
             </View>
-            <Text style={styles.name}>{item.other_user.display_name}</Text>
+            <View style={styles.info}>
+              <Text style={styles.name}>{item.other_user.display_name}</Text>
+              <Text style={styles.hint}>Tap to view head-to-head stats</Text>
+            </View>
             <TouchableOpacity onPress={() => removeFriend(item.id, item.other_user.display_name)}>
               <Text style={styles.removeText}>Remove</Text>
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
@@ -162,8 +171,10 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   avatarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  name: { flex: 1, fontSize: 16, fontWeight: '500' },
-  removeText: { fontSize: 14, color: '#ccc' },
+  info: { flex: 1 },
+  name: { fontSize: 16, fontWeight: '500' },
+  hint: { fontSize: 12, color: '#bbb', marginTop: 2 },
+  removeText: { fontSize: 14, color: '#ddd' },
   empty: { alignItems: 'center', marginTop: 80 },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#bbb', marginBottom: 12 },
   emptyAction: { color: '#FF6B6B', fontSize: 15, fontWeight: '600' },

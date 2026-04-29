@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, Image, StyleSheet,
-  Alert, ActivityIndicator, Platform, FlatList, Modal,
+  Alert, ActivityIndicator, Platform, FlatList, Modal, TextInput,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../../lib/supabase';
+import { sendPushNotification } from '../../lib/notifications';
 import type { User } from '../../types';
 
 export default function UploadScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [actualDate, setActualDate] = useState(new Date());
+  const [caption, setCaption] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [friends, setFriends] = useState<User[]>([]);
-  const [selectedFriend, setSelectedFriend] = useState<User | null>(null);
+  const [friends, setFriends] = useState<(User & { push_token?: string })[]>([]);
+  const [selectedFriend, setSelectedFriend] = useState<(User & { push_token?: string }) | null>(null);
   const [showFriendPicker, setShowFriendPicker] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -29,7 +31,7 @@ export default function UploadScreen() {
 
     const { data } = await supabase
       .from('friendships')
-      .select('sender_id, receiver_id, users!friendships_sender_id_fkey(id, display_name, email, avatar_url, created_at), users!friendships_receiver_id_fkey(id, display_name, email, avatar_url, created_at)')
+      .select('sender_id, receiver_id, users!friendships_sender_id_fkey(id, display_name, email, avatar_url, created_at, push_token), users!friendships_receiver_id_fkey(id, display_name, email, avatar_url, created_at, push_token)')
       .eq('status', 'accepted')
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
@@ -86,20 +88,33 @@ export default function UploadScreen() {
           receiver_id: selectedFriend.id,
           storage_url: publicUrl,
           actual_date: actualDate.toISOString().split('T')[0],
+          caption: caption.trim() || null,
         })
         .select()
         .single();
 
       if (dbError) throw dbError;
 
-      // Create the round immediately so the receiver sees it in GuessScreen
       await supabase.from('rounds').insert({
         photo_id: photo.id,
         guesser_id: selectedFriend.id,
       });
 
-      Alert.alert('Sent!', `${selectedFriend.display_name} will be challenged to guess this memory.`);
+      // Notify the receiver if they have a push token
+      if (selectedFriend.push_token) {
+        const { data: sender } = await supabase
+          .from('users').select('display_name').eq('id', user.id).single();
+        await sendPushNotification(
+          selectedFriend.push_token,
+          'New photo challenge!',
+          `${sender?.display_name ?? 'Someone'} wants you to guess when a photo was taken.`,
+          { screen: 'Challenges' }
+        );
+      }
+
+      Alert.alert('Sent!', `${selectedFriend.display_name} has been challenged.`);
       setImageUri(null);
+      setCaption('');
       setSelectedFriend(null);
     } catch (e: any) {
       Alert.alert('Upload failed', e.message);
@@ -114,14 +129,12 @@ export default function UploadScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Upload a Memory</Text>
 
-      {/* Photo picker */}
       <TouchableOpacity style={styles.photoPicker} onPress={pickImage}>
         {imageUri
           ? <Image source={{ uri: imageUri }} style={styles.preview} />
           : <Text style={styles.photoPickerText}>Tap to choose a photo</Text>}
       </TouchableOpacity>
 
-      {/* Date */}
       <Text style={styles.label}>When was this taken?</Text>
       <TouchableOpacity style={styles.fieldBtn} onPress={() => setShowDatePicker(true)}>
         <Text style={styles.fieldBtnText}>{actualDate.toDateString()}</Text>
@@ -139,7 +152,16 @@ export default function UploadScreen() {
         />
       )}
 
-      {/* Friend picker */}
+      <Text style={styles.label}>Caption (optional)</Text>
+      <TextInput
+        style={styles.captionInput}
+        placeholder="Add a hint or context..."
+        value={caption}
+        onChangeText={setCaption}
+        maxLength={120}
+        multiline
+      />
+
       <Text style={styles.label}>Send to</Text>
       <TouchableOpacity style={styles.fieldBtn} onPress={() => setShowFriendPicker(true)}>
         <Text style={[styles.fieldBtnText, !selectedFriend && styles.placeholder]}>
@@ -157,7 +179,6 @@ export default function UploadScreen() {
           : <Text style={styles.buttonText}>Send Challenge</Text>}
       </TouchableOpacity>
 
-      {/* Friend picker modal */}
       <Modal visible={showFriendPicker} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
@@ -193,20 +214,25 @@ export default function UploadScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 24, marginTop: 8 },
+  title: { fontSize: 24, fontWeight: '700', marginBottom: 20, marginTop: 8 },
   photoPicker: {
-    height: 200, borderRadius: 16, backgroundColor: '#f5f5f5',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 24, overflow: 'hidden',
+    height: 180, borderRadius: 16, backgroundColor: '#f5f5f5',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 20, overflow: 'hidden',
   },
   photoPickerText: { color: '#bbb', fontSize: 15 },
   preview: { width: '100%', height: '100%' },
-  label: { fontSize: 13, fontWeight: '600', color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  label: { fontSize: 12, fontWeight: '600', color: '#aaa', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
   fieldBtn: {
     borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 10,
-    padding: 14, marginBottom: 20,
+    padding: 14, marginBottom: 16,
   },
   fieldBtnText: { fontSize: 15, color: '#111' },
   placeholder: { color: '#bbb' },
+  captionInput: {
+    borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 10,
+    padding: 14, marginBottom: 16, fontSize: 15,
+    minHeight: 72, textAlignVertical: 'top',
+  },
   button: {
     backgroundColor: '#FF6B6B', borderRadius: 10,
     padding: 16, alignItems: 'center', marginTop: 4,
