@@ -4,6 +4,7 @@ export type User = {
   display_name: string;
   avatar_url?: string;
   created_at: string;
+  backup_enabled?: boolean;
 };
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'rejected';

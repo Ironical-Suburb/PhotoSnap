@@ -3,6 +3,7 @@ import {
   View, Text, Image, TouchableOpacity,
   StyleSheet, ActivityIndicator, Platform, Modal, StatusBar, ScrollView,
 } from 'react-native';
+import EncryptedImage from '../../components/EncryptedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -104,7 +105,7 @@ export default function GuessScreen() {
           style={styles.polaroidWrap}
         >
           <View style={styles.polaroid}>
-            <Image source={{ uri: photo.storage_url }} style={styles.photo} />
+            <EncryptedImage uri={photo.storage_url} style={styles.photo} resizeMode="cover" />
           </View>
           <Text style={styles.zoomHint}>Tap to enlarge</Text>
         </TouchableOpacity>
@@ -180,8 +181,8 @@ export default function GuessScreen() {
           <TouchableOpacity style={styles.zoomClose} onPress={() => setPhotoZoomed(false)}>
             <Text style={styles.zoomCloseText}>✕</Text>
           </TouchableOpacity>
-          <Image
-            source={{ uri: photo.storage_url }}
+          <EncryptedImage
+            uri={photo.storage_url}
             style={styles.zoomImage}
             resizeMode="contain"
           />

@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, FlatList, Image,
+  View, Text, FlatList,
   StyleSheet, ActivityIndicator, StatusBar,
 } from 'react-native';
+import EncryptedImage from '../../components/EncryptedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
@@ -85,7 +86,7 @@ export default function SentChallengesScreen() {
             return (
               <View style={styles.card}>
                 <View style={styles.thumbWrap}>
-                  <Image source={{ uri: item.storage_url }} style={styles.thumb} />
+                  <EncryptedImage uri={item.storage_url} style={styles.thumb} />
                 </View>
                 <View style={styles.cardInfo}>
                   <View style={styles.cardTop}>

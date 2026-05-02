@@ -1,5 +1,10 @@
 name: Build Android APK
 
+on:
+  push:
+    branches:
+      - master
+
 jobs:
   build_android:
     type: build

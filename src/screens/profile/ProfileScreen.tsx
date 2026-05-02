@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
+  View, Text, TextInput, TouchableOpacity, Switch,
   StyleSheet, Alert, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
+import { backupKey } from '../../lib/crypto';
 import type { User } from '../../types';
 import TabBar from '../../components/TabBar';
 import { C, R } from '../../theme';
@@ -16,6 +17,8 @@ export default function ProfileScreen() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [backupEnabled, setBackupEnabled] = useState(false);
+  const [backupLoading, setBackupLoading] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -28,8 +31,38 @@ export default function ProfileScreen() {
     if (data) {
       setProfile(data as User);
       setDisplayName(data.display_name);
+      setBackupEnabled(data.backup_enabled ?? false);
     }
     setLoading(false);
+  }
+
+  async function toggleBackup(enabled: boolean) {
+    if (!profile) return;
+    setBackupLoading(true);
+    if (enabled) {
+      Alert.alert(
+        'Enable Key Backup',
+        'Your encryption key will be saved to your account so you can restore photos on a new device. It is stored securely and only you can access it.',
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => setBackupLoading(false) },
+          {
+            text: 'Enable',
+            onPress: async () => {
+              await backupKey(profile.id);
+              await supabase.from('users').update({ backup_enabled: true }).eq('id', profile.id);
+              setBackupEnabled(true);
+              setProfile((p) => p ? { ...p, backup_enabled: true } : p);
+              setBackupLoading(false);
+            },
+          },
+        ]
+      );
+    } else {
+      await supabase.from('users').update({ backup_enabled: false, encryption_key: null }).eq('id', profile.id);
+      setBackupEnabled(false);
+      setProfile((p) => p ? { ...p, backup_enabled: false } : p);
+      setBackupLoading(false);
+    }
   }
 
   async function saveDisplayName() {
@@ -163,6 +196,28 @@ export default function ProfileScreen() {
               </View>
             </View>
 
+            <View style={styles.divider} />
+
+            {/* Encryption key backup */}
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Text style={styles.rowLabel}>KEY BACKUP</Text>
+                <Text style={styles.rowSubValue}>
+                  {backupEnabled ? 'Key saved to account — restores on new device' : 'Off — photos only exist on this device'}
+                </Text>
+              </View>
+              {backupLoading ? (
+                <ActivityIndicator color={C.primary} size="small" style={{ marginLeft: 8 }} />
+              ) : (
+                <Switch
+                  value={backupEnabled}
+                  onValueChange={toggleBackup}
+                  trackColor={{ false: C.surface3, true: C.primary }}
+                  thumbColor={C.white}
+                />
+              )}
+            </View>
+
           </View>
 
           {/* Sign out */}
@@ -263,6 +318,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: C.text,
+  },
+  rowSubValue: {
+    fontSize: 12,
+    color: C.text3,
+    marginTop: 2,
+    lineHeight: 16,
+    flexShrink: 1,
   },
   rowInput: {
     fontSize: 16,

@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './src/lib/supabase';
 import { registerForPushNotifications } from './src/lib/notifications';
+import { hasLocalKey, restoreKeyFromBackup } from './src/lib/crypto';
 import AppNavigator from './src/navigation/AppNavigator';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import ProfileSetupScreen from './src/screens/profile/ProfileSetupScreen';
@@ -44,10 +45,14 @@ export default function App() {
   }, [checkState]);
 
   useEffect(() => {
-    if (appState === 'ready') {
+    if (appState === 'ready' && session) {
       registerForPushNotifications();
+      // Restore encryption key from backup if this device doesn't have one
+      hasLocalKey().then((has) => {
+        if (!has) restoreKeyFromBackup(session.user.id);
+      });
     }
-  }, [appState]);
+  }, [appState, session]);
 
   if (appState === 'loading') return null;
 

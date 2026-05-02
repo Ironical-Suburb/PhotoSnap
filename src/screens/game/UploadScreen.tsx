@@ -7,12 +7,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { File } from 'expo-file-system/next';
 import { decode } from 'base64-arraybuffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 import { sendPushNotification } from '../../lib/notifications';
 import { toLocalDateString, localMidnight } from '../../lib/dates';
+import { encryptFileToBase64 } from '../../lib/crypto';
 import type { User } from '../../types';
 import TabBar from '../../components/TabBar';
 import { C, R } from '../../theme';
@@ -140,13 +140,12 @@ export default function UploadScreen() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const ext = imageUri.split('.').pop() ?? 'jpg';
-      const fileName = `${user.id}/${Date.now()}.${ext}`;
-      const base64 = await new File(imageUri).base64();
+      const fileName = `${user.id}/${Date.now()}.enc`;
+      const encryptedBase64 = await encryptFileToBase64(imageUri);
 
       const { error: storageError } = await supabase.storage
         .from('Photos')
-        .upload(fileName, decode(base64), { contentType: `image/${ext}` });
+        .upload(fileName, decode(encryptedBase64), { contentType: 'application/octet-stream' });
 
       if (storageError) throw storageError;
 
