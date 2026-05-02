@@ -1,16 +1,17 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { C } from '../theme';
 
 type TabName = 'Home' | 'Challenges' | 'Upload' | 'Friends' | 'Profile';
 
-const TABS: { name: TabName; label: string }[] = [
-  { name: 'Home', label: 'Home' },
-  { name: 'Challenges', label: 'Inbox' },
-  { name: 'Upload', label: 'Snap' },
-  { name: 'Friends', label: 'Friends' },
-  { name: 'Profile', label: 'Me' },
+const TABS: { name: TabName; label: string; icon: string; iconActive: string }[] = [
+  { name: 'Home',       label: 'Home',    icon: 'home-outline',          iconActive: 'home' },
+  { name: 'Challenges', label: 'Inbox',   icon: 'mail-outline',          iconActive: 'mail' },
+  { name: 'Upload',     label: 'Snap',    icon: 'camera',                iconActive: 'camera' },
+  { name: 'Friends',    label: 'Friends', icon: 'people-outline',        iconActive: 'people' },
+  { name: 'Profile',    label: 'Me',      icon: 'person-circle-outline', iconActive: 'person-circle' },
 ];
 
 export default function TabBar({ challengeCount = 0 }: { challengeCount?: number }) {
@@ -33,25 +34,39 @@ export default function TabBar({ challengeCount = 0 }: { challengeCount?: number
 
           if (isSnap) {
             return (
-              <TouchableOpacity key={tab.name} style={styles.snapWrap} onPress={() => goTo(tab.name)} activeOpacity={0.85}>
+              <TouchableOpacity
+                key={tab.name}
+                style={styles.snapWrap}
+                onPress={() => goTo(tab.name)}
+                activeOpacity={0.85}
+              >
                 <View style={[styles.snapBtn, active && styles.snapBtnActive]}>
-                  <View style={styles.snapInner} />
+                  <Ionicons name="camera" size={22} color={C.white} />
                 </View>
               </TouchableOpacity>
             );
           }
 
           return (
-            <TouchableOpacity key={tab.name} style={styles.tab} onPress={() => goTo(tab.name)} activeOpacity={0.7}>
-              <View style={styles.tabIconWrap}>
-                <TabIcon name={tab.name} active={active} />
+            <TouchableOpacity
+              key={tab.name}
+              style={styles.tab}
+              onPress={() => goTo(tab.name)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  name={(active ? tab.iconActive : tab.icon) as any}
+                  size={23}
+                  color={active ? C.primary : C.text3}
+                />
                 {tab.name === 'Challenges' && challengeCount > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{challengeCount > 9 ? '9+' : challengeCount}</Text>
                   </View>
                 )}
               </View>
-              <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{tab.label}</Text>
+              <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -60,87 +75,60 @@ export default function TabBar({ challengeCount = 0 }: { challengeCount?: number
   );
 }
 
-function TabIcon({ name, active }: { name: TabName; active: boolean }) {
-  const color = active ? C.primary : C.text3;
-  const size = 22;
-
-  const icons: Record<TabName, string> = {
-    Home: active ? '■' : '□',
-    Challenges: active ? '▼' : '▽',
-    Upload: '◎',
-    Friends: active ? '●●' : '○○',
-    Profile: active ? '●' : '○',
-  };
-
-  return (
-    <Text style={{ color, fontSize: size, lineHeight: size + 2 }}>
-      {icons[name]}
-    </Text>
-  );
-}
-
 const styles = StyleSheet.create({
   wrap: {
     backgroundColor: C.surface,
     borderTopWidth: 0.5,
     borderTopColor: C.border,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 6,
   },
   bar: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 56,
-    paddingHorizontal: 4,
+    alignItems: 'center',
+    height: 52,
+    paddingHorizontal: 8,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 8,
     gap: 3,
+    paddingTop: 6,
   },
-  tabIconWrap: {
+  iconWrap: {
     position: 'relative',
   },
-  tabLabel: {
+  label: {
     fontSize: 10,
     fontWeight: '500',
     color: C.text3,
     letterSpacing: 0.2,
   },
-  tabLabelActive: {
+  labelActive: {
     color: C.primary,
     fontWeight: '700',
   },
   snapWrap: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: 4,
+    justifyContent: 'center',
+    paddingTop: 4,
   },
   snapBtn: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: C.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: -6,
     shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
   },
   snapBtnActive: {
     backgroundColor: '#FF7A45',
-  },
-  snapInner: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2.5,
-    borderColor: C.white,
   },
   badge: {
     position: 'absolute',

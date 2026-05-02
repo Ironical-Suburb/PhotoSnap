@@ -4,6 +4,7 @@ import HomeScreen from '../screens/game/HomeScreen';
 import ChallengesScreen from '../screens/game/ChallengesScreen';
 import GuessScreen from '../screens/game/GuessScreen';
 import UploadScreen from '../screens/game/UploadScreen';
+import DraftsScreen from '../screens/game/DraftsScreen';
 import SentChallengesScreen from '../screens/game/SentChallengesScreen';
 import HistoryScreen from '../screens/game/HistoryScreen';
 import LeaderboardScreen from '../screens/game/LeaderboardScreen';
@@ -33,6 +34,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Challenges" component={ChallengesScreen} />
       <Stack.Screen name="Guess" component={GuessScreen} options={{ ...darkHeader, title: '' }} />
       <Stack.Screen name="Upload" component={UploadScreen} />
+      <Stack.Screen name="Drafts" component={DraftsScreen} options={{ ...darkHeader, title: 'Drafts' }} />
       <Stack.Screen name="SentChallenges" component={SentChallengesScreen} options={{ ...darkHeader, title: 'Sent Challenges' }} />
       <Stack.Screen name="History" component={HistoryScreen} options={{ ...darkHeader, title: 'History' }} />
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ ...darkHeader, title: 'Leaderboard' }} />

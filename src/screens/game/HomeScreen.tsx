@@ -8,6 +8,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
 import type { AppStackParamList } from '../../navigation/types';
 import TabBar from '../../components/TabBar';
+import { Ionicons } from '@expo/vector-icons';
 import { C, R } from '../../theme';
 
 export default function HomeScreen() {
@@ -103,20 +104,21 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Quick grid */}
+        {/* Quick grid — 2×2 */}
         <View style={styles.grid}>
           {([
-            { label: 'Sent', sub: 'Challenges', screen: 'SentChallenges' as const, symbol: '↑' },
-            { label: 'History', sub: 'My rounds', screen: 'History' as const, symbol: '⏱' },
-            { label: 'Scores', sub: 'Leaderboard', screen: 'Leaderboard' as const, symbol: '★' },
-          ]).map(({ label, sub, screen, symbol }) => (
+            { label: 'Sent', sub: 'Challenges', screen: 'SentChallenges' as const, icon: 'arrow-up-circle-outline' },
+            { label: 'History', sub: 'My rounds', screen: 'History' as const, icon: 'time-outline' },
+            { label: 'Scores', sub: 'Leaderboard', screen: 'Leaderboard' as const, icon: 'trophy-outline' },
+            { label: 'Drafts', sub: 'Saved posts', screen: 'Drafts' as const, icon: 'document-text-outline' },
+          ] as const).map(({ label, sub, screen, icon }) => (
             <TouchableOpacity
               key={screen}
               style={styles.gridItem}
               onPress={() => navigation.navigate(screen)}
               activeOpacity={0.7}
             >
-              <Text style={styles.gridSymbol}>{symbol}</Text>
+              <Ionicons name={icon as any} size={22} color={C.text2} style={{ marginBottom: 4 }} />
               <Text style={styles.gridLabel}>{label}</Text>
               <Text style={styles.gridSub}>{sub}</Text>
             </TouchableOpacity>
@@ -260,32 +262,28 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
   },
   gridItem: {
-    flex: 1,
+    width: '47.5%',
     backgroundColor: C.surface,
     borderRadius: R.lg,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    gap: 4,
+    paddingVertical: 18,
+    paddingHorizontal: 14,
+    alignItems: 'flex-start',
     borderWidth: 0.5,
     borderColor: C.border,
   },
-  gridSymbol: {
-    fontSize: 20,
-    color: C.text2,
-    marginBottom: 2,
-  },
   gridLabel: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: C.text,
+    marginTop: 2,
   },
   gridSub: {
-    fontSize: 10,
+    fontSize: 11,
     color: C.text3,
-    letterSpacing: 0.2,
+    marginTop: 2,
   },
 });

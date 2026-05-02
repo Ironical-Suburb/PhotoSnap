@@ -2,7 +2,8 @@ export type AppStackParamList = {
   Home: undefined;
   Challenges: undefined;
   Guess: { roundId: string };
-  Upload: undefined;
+  Upload: { draftId?: string } | undefined;
+  Drafts: undefined;
   Leaderboard: undefined;
   SentChallenges: undefined;
   History: undefined;

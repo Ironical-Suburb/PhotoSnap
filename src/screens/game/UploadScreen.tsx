@@ -9,17 +9,21 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { decode } from 'base64-arraybuffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
 import { sendPushNotification } from '../../lib/notifications';
 import { toLocalDateString, localMidnight } from '../../lib/dates';
 import { encryptFileToBase64 } from '../../lib/crypto';
 import type { User } from '../../types';
+import type { AppStackParamList } from '../../navigation/types';
 import TabBar from '../../components/TabBar';
 import { C, R } from '../../theme';
 
-const DRAFT_KEY = 'upload_draft';
+export const DRAFTS_KEY = 'upload_drafts_v2';
 
-type Draft = {
+export type Draft = {
+  id: string;
   imageUri: string;
   actualDate: string;
   caption: string;
@@ -28,7 +32,33 @@ type Draft = {
   savedAt: string;
 };
 
+export async function getAllDrafts(): Promise<Draft[]> {
+  try {
+    const raw = await AsyncStorage.getItem(DRAFTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+async function saveDraftToStore(draft: Draft): Promise<void> {
+  const drafts = await getAllDrafts();
+  const idx = drafts.findIndex((d) => d.id === draft.id);
+  if (idx >= 0) drafts[idx] = draft;
+  else drafts.unshift(draft);
+  await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+}
+
+export async function deleteDraft(id: string): Promise<void> {
+  const drafts = await getAllDrafts();
+  await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts.filter((d) => d.id !== id)));
+}
+
+type UploadRoute = RouteProp<AppStackParamList, 'Upload'>;
+
 export default function UploadScreen() {
+  const route = useRoute<UploadRoute>();
+  const incomingDraftId = route.params?.draftId;
+
+  const [draftId] = useState(() => incomingDraftId ?? `draft_${Date.now()}`);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [actualDate, setActualDate] = useState(() => localMidnight());
   const [caption, setCaption] = useState('');
@@ -42,7 +72,9 @@ export default function UploadScreen() {
 
   useEffect(() => {
     fetchFriends();
-    loadDraft();
+    if (incomingDraftId) {
+      loadSpecificDraft(incomingDraftId);
+    }
   }, []);
 
   // Auto-save draft whenever key fields change
@@ -53,31 +85,19 @@ export default function UploadScreen() {
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
   }, [imageUri, actualDate, caption, selectedFriend]);
 
-  async function loadDraft() {
-    try {
-      const raw = await AsyncStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const draft: Draft = JSON.parse(raw);
-      Alert.alert(
-        'Resume draft?',
-        `You have an unsent challenge saved ${new Date(draft.savedAt).toLocaleDateString()}.`,
-        [
-          { text: 'Discard', style: 'destructive', onPress: () => AsyncStorage.removeItem(DRAFT_KEY) },
-          {
-            text: 'Resume', onPress: () => {
-              setImageUri(draft.imageUri);
-              setActualDate(new Date(draft.actualDate));
-              setCaption(draft.caption);
-            },
-          },
-        ]
-      );
-    } catch {}
+  async function loadSpecificDraft(id: string) {
+    const drafts = await getAllDrafts();
+    const draft = drafts.find((d) => d.id === id);
+    if (!draft) return;
+    setImageUri(draft.imageUri);
+    setActualDate(new Date(draft.actualDate));
+    setCaption(draft.caption);
   }
 
   async function saveDraft() {
     if (!imageUri && !caption) return;
     const draft: Draft = {
+      id: draftId,
       imageUri: imageUri ?? '',
       actualDate: actualDate.toISOString(),
       caption,
@@ -85,13 +105,13 @@ export default function UploadScreen() {
       friendName: selectedFriend?.display_name ?? null,
       savedAt: new Date().toISOString(),
     };
-    await AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    await saveDraftToStore(draft);
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2000);
   }
 
   async function clearDraft() {
-    await AsyncStorage.removeItem(DRAFT_KEY);
+    await deleteDraft(draftId);
   }
 
   async function fetchFriends() {
