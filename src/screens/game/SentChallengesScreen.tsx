@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, Image,
-  StyleSheet, ActivityIndicator,
+  StyleSheet, ActivityIndicator, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
+import { C, R } from '../../theme';
 
 type SentPhoto = {
   id: string;
@@ -12,7 +14,8 @@ type SentPhoto = {
   actual_date: string;
   caption: string | null;
   created_at: string;
-  receiver: { display_name: string };
+  receiver_id: string;
+  receiver: { display_name: string } | null;
   round: { guess_date: string | null; score: number | null } | null;
 };
 
@@ -29,80 +32,219 @@ export default function SentChallengesScreen() {
   async function fetchSent() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
 
-    const { data } = await supabase
+    const { data: photoRows } = await supabase
       .from('photos')
-      .select('id, storage_url, actual_date, caption, created_at, users!photos_receiver_id_fkey(display_name), rounds(guess_date, score)')
+      .select('id, storage_url, actual_date, caption, created_at, receiver_id')
       .eq('sender_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (data) {
-      setPhotos(
-        data.map((row: any) => ({
-          ...row,
-          receiver: row['users!photos_receiver_id_fkey'],
-          round: row.rounds?.[0] ?? null,
-        }))
-      );
-    }
+    if (!photoRows?.length) { setPhotos([]); setLoading(false); return; }
+
+    const photoIds = photoRows.map((p) => p.id);
+    const receiverIds = [...new Set(photoRows.map((p) => p.receiver_id))];
+
+    const [{ data: rounds }, { data: receivers }] = await Promise.all([
+      supabase.from('rounds').select('photo_id, guess_date, score').in('photo_id', photoIds),
+      supabase.from('users').select('id, display_name').in('id', receiverIds),
+    ]);
+
+    const roundMap = new Map((rounds ?? []).map((r) => [r.photo_id, r]));
+    const receiverMap = new Map((receivers ?? []).map((u) => [u.id, u]));
+
+    setPhotos(
+      photoRows.map((p) => ({
+        ...p,
+        receiver: receiverMap.get(p.receiver_id) ?? null,
+        round: roundMap.get(p.id) ?? null,
+      }))
+    );
     setLoading(false);
   }
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
-
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={photos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const guessed = item.round?.guess_date != null;
-          return (
-            <View style={styles.card}>
-              <Image source={{ uri: item.storage_url }} style={styles.thumb} />
-              <View style={styles.info}>
-                <Text style={styles.to}>To {item.receiver?.display_name ?? 'friend'}</Text>
-                <Text style={styles.actual}>Taken {new Date(item.actual_date).toDateString()}</Text>
-                {guessed ? (
-                  <>
-                    <Text style={styles.guessed}>
-                      Guessed: {new Date(item.round!.guess_date!).toDateString()}
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>Sent</Text>
+        <Text style={styles.subtitle}>{photos.length} challenge{photos.length !== 1 ? 's' : ''} sent</Text>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator color={C.primary} style={{ flex: 1 }} />
+      ) : (
+        <FlatList
+          data={photos}
+          keyExtractor={(item, index) => item.id ?? String(index)}
+          contentContainerStyle={photos.length === 0 ? styles.emptyContainer : styles.listContent}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            const guessed = item.round?.guess_date != null;
+            return (
+              <View style={styles.card}>
+                <View style={styles.thumbWrap}>
+                  <Image source={{ uri: item.storage_url }} style={styles.thumb} />
+                </View>
+                <View style={styles.cardInfo}>
+                  <View style={styles.cardTop}>
+                    <Text style={styles.cardTo}>
+                      To {item.receiver?.display_name ?? 'friend'}
                     </Text>
-                    <Text style={styles.score}>{item.round!.score} pts</Text>
-                  </>
-                ) : (
-                  <Text style={styles.pending}>Waiting for guess...</Text>
-                )}
+                    <View style={[styles.statusPill, guessed && styles.statusPillDone]}>
+                      <Text style={[styles.statusPillText, guessed && styles.statusPillTextDone]}>
+                        {guessed ? 'Guessed' : 'Waiting'}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.cardDate}>
+                    Taken {new Date(item.actual_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </Text>
+                  {guessed ? (
+                    <View style={styles.cardResult}>
+                      <Text style={styles.cardScore}>{item.round!.score}</Text>
+                      <Text style={styles.cardScoreLabel}>pts</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.cardPending}>Awaiting guess…</Text>
+                  )}
+                </View>
               </View>
+            );
+          }}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>Nothing sent yet</Text>
+              <Text style={styles.emptySub}>Upload a photo to challenge a friend.</Text>
             </View>
-          );
-        }}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No challenges sent yet</Text>
-            <Text style={styles.emptySub}>Upload a photo to challenge a friend.</Text>
-          </View>
-        }
-      />
-    </View>
+          }
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  card: {
-    flexDirection: 'row', padding: 16,
-    borderBottomWidth: 1, borderBottomColor: '#f5f5f5',
+  root: {
+    flex: 1,
+    backgroundColor: C.bg,
   },
-  thumb: { width: 72, height: 72, borderRadius: 10, marginRight: 14 },
-  info: { flex: 1, justifyContent: 'center' },
-  to: { fontSize: 15, fontWeight: '600', marginBottom: 2 },
-  actual: { fontSize: 13, color: '#888', marginBottom: 4 },
-  guessed: { fontSize: 13, color: '#555' },
-  score: { fontSize: 18, fontWeight: '800', color: '#FF6B6B', marginTop: 2 },
-  pending: { fontSize: 13, color: '#bbb', fontStyle: 'italic' },
-  empty: { alignItems: 'center', marginTop: 100, paddingHorizontal: 32 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#bbb', marginBottom: 8 },
-  emptySub: { fontSize: 14, color: '#ccc', textAlign: 'center' },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    gap: 2,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: C.text,
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: C.text2,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    gap: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  card: {
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    padding: 14,
+    flexDirection: 'row',
+    gap: 14,
+    borderWidth: 0.5,
+    borderColor: C.border,
+  },
+  thumbWrap: {
+    borderRadius: R.sm,
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: C.white,
+  },
+  thumb: {
+    width: 72,
+    height: 72,
+  },
+  cardInfo: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardTo: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.text,
+  },
+  statusPill: {
+    borderRadius: R.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    backgroundColor: C.surface2,
+  },
+  statusPillDone: {
+    backgroundColor: 'rgba(50,215,75,0.15)',
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: C.text3,
+  },
+  statusPillTextDone: {
+    color: C.success,
+  },
+  cardDate: {
+    fontSize: 12,
+    color: C.text2,
+    marginTop: 4,
+  },
+  cardResult: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
+    marginTop: 4,
+  },
+  cardScore: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: C.primary,
+  },
+  cardScoreLabel: {
+    fontSize: 12,
+    color: C.text3,
+    fontWeight: '600',
+  },
+  cardPending: {
+    fontSize: 12,
+    color: C.text3,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  empty: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: C.text2,
+  },
+  emptySub: {
+    fontSize: 14,
+    color: C.text3,
+    textAlign: 'center',
+  },
 });

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform,
+  StyleSheet, Alert, KeyboardAvoidingView, Platform, StatusBar,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
+import { C, R } from '../../theme';
 
 type Props = {
   onComplete: () => void;
@@ -37,53 +38,155 @@ export default function ProfileSetupScreen({ onComplete }: Props) {
     }
   }
 
+  const ready = displayName.trim().length >= 2 && !loading;
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
       <View style={styles.inner}>
-        <Text style={styles.title}>Welcome to PhotoSnap</Text>
-        <Text style={styles.subtitle}>Choose a display name so your friends can find you.</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Alex or PhotoKing99"
-          value={displayName}
-          onChangeText={setDisplayName}
-          maxLength={30}
-          autoFocus
-          returnKeyType="done"
-          onSubmitEditing={save}
-        />
-        <Text style={styles.hint}>{displayName.trim().length}/30</Text>
+        <View style={styles.top}>
+          <View style={styles.iconWrap}>
+            <Text style={styles.iconText}>
+              {displayName.trim() ? displayName.trim()[0].toUpperCase() : '?'}
+            </Text>
+          </View>
+          <Text style={styles.title}>Pick your name</Text>
+          <Text style={styles.subtitle}>
+            This is how friends will find and challenge you.
+          </Text>
+        </View>
+
+        <View style={styles.fieldWrap}>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Alex or SnapKing99"
+            placeholderTextColor={C.text3}
+            value={displayName}
+            onChangeText={setDisplayName}
+            maxLength={30}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={save}
+            selectionColor={C.primary}
+          />
+          <View style={styles.charRow}>
+            <Text style={styles.charCount}>{displayName.trim().length}/30</Text>
+            {displayName.trim().length >= 2 && (
+              <Text style={styles.charOk}>Looks good!</Text>
+            )}
+          </View>
+        </View>
 
         <TouchableOpacity
-          style={[styles.button, (displayName.trim().length < 2 || loading) && styles.buttonDisabled]}
+          style={[styles.btn, !ready && styles.btnDisabled]}
           onPress={save}
-          disabled={displayName.trim().length < 2 || loading}
+          disabled={!ready}
+          activeOpacity={0.85}
         >
-          <Text style={styles.buttonText}>{loading ? 'Saving...' : 'Get Started'}</Text>
+          <Text style={styles.btnText}>{loading ? 'Saving...' : 'Get Started'}</Text>
         </TouchableOpacity>
+
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  inner: { flex: 1, justifyContent: 'center', padding: 28 },
-  title: { fontSize: 30, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#888', textAlign: 'center', marginBottom: 40, lineHeight: 22 },
+  root: {
+    flex: 1,
+    backgroundColor: C.bg,
+  },
+  inner: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    paddingVertical: 40,
+    gap: 24,
+  },
+  top: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: C.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    marginBottom: 8,
+  },
+  iconText: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: C.white,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: C.text,
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: C.text2,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  fieldWrap: {
+    gap: 6,
+  },
   input: {
-    borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 12,
-    padding: 16, fontSize: 17, marginBottom: 6,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: R.lg,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    fontSize: 18,
+    color: C.text,
   },
-  hint: { fontSize: 12, color: '#ccc', textAlign: 'right', marginBottom: 28 },
-  button: {
-    backgroundColor: '#FF6B6B', borderRadius: 12,
-    padding: 17, alignItems: 'center',
+  charRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
   },
-  buttonDisabled: { opacity: 0.4 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 17 },
+  charCount: {
+    fontSize: 12,
+    color: C.text3,
+  },
+  charOk: {
+    fontSize: 12,
+    color: C.success,
+    fontWeight: '600',
+  },
+  btn: {
+    backgroundColor: C.primary,
+    borderRadius: R.lg,
+    paddingVertical: 17,
+    alignItems: 'center',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  btnDisabled: {
+    opacity: 0.35,
+  },
+  btnText: {
+    color: C.white,
+    fontWeight: '800',
+    fontSize: 17,
+    letterSpacing: 0.2,
+  },
 });

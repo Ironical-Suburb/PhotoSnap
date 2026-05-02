@@ -2,6 +2,7 @@ import 'react-native-url-polyfill/auto';
 import React, { useEffect, useState, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './src/lib/supabase';
 import { registerForPushNotifications } from './src/lib/notifications';
@@ -51,13 +52,15 @@ export default function App() {
   if (appState === 'loading') return null;
 
   return (
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      {appState === 'unauthenticated' && <AuthNavigator />}
-      {appState === 'needs_profile' && (
-        <ProfileSetupScreen onComplete={() => checkState(session)} />
-      )}
-      {appState === 'ready' && <AppNavigator />}
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar style="light" backgroundColor="#0C0C0C" />
+        {appState === 'unauthenticated' && <AuthNavigator />}
+        {appState === 'needs_profile' && (
+          <ProfileSetupScreen onComplete={() => checkState(session)} />
+        )}
+        {appState === 'ready' && <AppNavigator />}
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

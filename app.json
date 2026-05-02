@@ -2,6 +2,7 @@
   "expo": {
     "name": "PhotoSnap",
     "slug": "PhotoSnap",
+    "scheme": "photosnap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,11 +17,12 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.photosnap.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -28,7 +30,14 @@
     },
     "plugins": [
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "09ffe2a6-7153-4534-9d86-1ddd592b3ca5"
+      }
+    }
   }
 }

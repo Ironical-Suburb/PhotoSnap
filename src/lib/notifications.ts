@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 import { supabase } from './supabase';
 
 Notifications.setNotificationHandler({
@@ -8,6 +8,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -19,27 +21,30 @@ export async function registerForPushNotifications(): Promise<void> {
     });
   }
 
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+  const authStatus = await messaging().requestPermission();
+  const granted =
+    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+    authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+  if (!granted) return;
+
+  try {
+    const token = await messaging().getToken();
+    await savePushToken(token);
+
+    messaging().onTokenRefresh(savePushToken);
+  } catch (e) {
+    console.warn('FCM token registration failed:', e);
   }
+}
 
-  if (finalStatus !== 'granted') return;
-
-  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-  const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-
+async function savePushToken(token: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     await supabase.from('users').update({ push_token: token }).eq('id', user.id);
   }
 }
 
-// Sends a push notification via Expo's push service.
-// See: https://docs.expo.dev/push-notifications/sending-notifications/
 export async function sendPushNotification(
   pushToken: string,
   title: string,

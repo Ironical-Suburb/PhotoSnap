@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, Image, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Platform,
+  StyleSheet, ActivityIndicator, Platform, Modal, StatusBar, ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
 import { calculateScore } from '../../constants/scoring';
+import { toLocalDateString, localMidnight } from '../../lib/dates';
 import type { Photo, Round } from '../../types';
 import type { AppStackParamList } from '../../navigation/types';
+import { C, R } from '../../theme';
 
 type GuessRoute = RouteProp<AppStackParamList, 'Guess'>;
 
 export default function GuessScreen() {
   const route = useRoute<GuessRoute>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const roundId = route.params?.roundId;
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [round, setRound] = useState<Round | null>(null);
-  const [guessDate, setGuessDate] = useState(new Date());
+  const [guessDate, setGuessDate] = useState(() => localMidnight());
   const [showPicker, setShowPicker] = useState(false);
   const [result, setResult] = useState<{ points: number; label: string; daysOff: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [photoZoomed, setPhotoZoomed] = useState(false);
 
   useEffect(() => {
     fetchRound();
@@ -45,101 +51,360 @@ export default function GuessScreen() {
   async function submitGuess() {
     if (!round || !photo) return;
 
-    const scored = calculateScore(photo.actual_date, guessDate.toISOString().split('T')[0]);
+    const guessStr = toLocalDateString(guessDate);
+    const scored = calculateScore(photo.actual_date, guessStr);
     setResult(scored);
 
     await supabase.from('rounds').update({
-      guess_date: guessDate.toISOString().split('T')[0],
+      guess_date: guessStr,
       score: scored.points,
       resolved_at: new Date().toISOString(),
     }).eq('id', round.id);
   }
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
-
-  if (!photo || !round) {
+  if (loading) {
     return (
-      <View style={styles.empty}>
-        <Text style={styles.emptyText}>Challenge not found.</Text>
+      <View style={styles.loadingRoot}>
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+        <ActivityIndicator color={C.primary} size="large" />
       </View>
     );
   }
 
+  if (!photo || !round) {
+    return (
+      <View style={styles.loadingRoot}>
+        <Text style={styles.errorText}>Challenge not found.</Text>
+      </View>
+    );
+  }
+
+  const scoreColor = result
+    ? result.points >= 800 ? C.accent
+    : result.points >= 400 ? C.success
+    : result.points >= 100 ? C.text2
+    : C.error
+    : C.primary;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>When was this taken?</Text>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      <Image source={{ uri: photo.storage_url }} style={styles.photo} />
+      {/* Back button */}
+      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Text style={styles.backBtnText}>←</Text>
+      </TouchableOpacity>
 
-      {photo.caption ? (
-        <Text style={styles.caption}>{photo.caption}</Text>
-      ) : null}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
-      {result ? (
-        <View style={styles.resultBox}>
-          <Text style={styles.resultLabel}>{result.label}</Text>
-          <Text style={styles.resultPoints}>{result.points} pts</Text>
-          <Text style={styles.resultDays}>
-            {result.daysOff === 0
-              ? 'Exactly right!'
-              : `${result.daysOff} day${result.daysOff !== 1 ? 's' : ''} off`}
-          </Text>
-          <Text style={styles.resultActual}>
-            Actual date: {new Date(photo.actual_date).toDateString()}
-          </Text>
+        {/* Photo with polaroid frame */}
+        <TouchableOpacity
+          onPress={() => setPhotoZoomed(true)}
+          activeOpacity={0.95}
+          style={styles.polaroidWrap}
+        >
+          <View style={styles.polaroid}>
+            <Image source={{ uri: photo.storage_url }} style={styles.photo} />
+          </View>
+          <Text style={styles.zoomHint}>Tap to enlarge</Text>
+        </TouchableOpacity>
+
+        {photo.caption ? (
+          <View style={styles.captionWrap}>
+            <Text style={styles.captionQuote}>"</Text>
+            <Text style={styles.caption}>{photo.caption}</Text>
+          </View>
+        ) : null}
+
+        {result ? (
+          <View style={styles.resultCard}>
+            <Text style={styles.resultLabel}>{result.label}</Text>
+            <Text style={[styles.resultPoints, { color: scoreColor }]}>{result.points}</Text>
+            <Text style={styles.resultPtsLabel}>points</Text>
+            <View style={styles.resultDivider} />
+            <Text style={styles.resultDays}>
+              {result.daysOff === 0 ? 'Exactly right!' : `${result.daysOff} day${result.daysOff !== 1 ? 's' : ''} off`}
+            </Text>
+            <Text style={styles.resultActual}>
+              Actual date: {new Date(photo.actual_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </Text>
+            <TouchableOpacity
+              style={styles.doneBtn}
+              onPress={() => navigation.navigate('Challenges')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.doneBtnText}>Back to Inbox</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.guessCard}>
+            <Text style={styles.guessLabel}>WHEN WAS THIS TAKEN?</Text>
+
+            <TouchableOpacity
+              style={styles.datePicker}
+              onPress={() => setShowPicker(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.datePickerLeft}>
+                <Text style={styles.datePickerHint}>Your guess</Text>
+                <Text style={styles.datePickerValue}>
+                  {guessDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </Text>
+              </View>
+              <Text style={styles.datePickerEdit}>Change ›</Text>
+            </TouchableOpacity>
+
+            {showPicker && (
+              <DateTimePicker
+                value={guessDate}
+                mode="date"
+                maximumDate={new Date()}
+                onChange={(_, date) => {
+                  setShowPicker(Platform.OS === 'ios');
+                  if (date) setGuessDate(localMidnight(date));
+                }}
+              />
+            )}
+
+            <TouchableOpacity style={styles.submitBtn} onPress={submitGuess} activeOpacity={0.85}>
+              <Text style={styles.submitBtnText}>Submit Guess</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+      </ScrollView>
+
+      {/* Fullscreen zoom modal */}
+      <Modal visible={photoZoomed} animationType="fade" statusBarTranslucent>
+        <View style={styles.zoomModal}>
+          <TouchableOpacity style={styles.zoomClose} onPress={() => setPhotoZoomed(false)}>
+            <Text style={styles.zoomCloseText}>✕</Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: photo.storage_url }}
+            style={styles.zoomImage}
+            resizeMode="contain"
+          />
         </View>
-      ) : (
-        <>
-          <Text style={styles.label}>Your guess</Text>
-          <TouchableOpacity style={styles.dateBtn} onPress={() => setShowPicker(true)}>
-            <Text style={styles.dateBtnText}>{guessDate.toDateString()}</Text>
-          </TouchableOpacity>
-
-          {showPicker && (
-            <DateTimePicker
-              value={guessDate}
-              mode="date"
-              maximumDate={new Date()}
-              onChange={(_, date) => {
-                setShowPicker(Platform.OS === 'ios');
-                if (date) setGuessDate(date);
-              }}
-            />
-          )}
-
-          <TouchableOpacity style={styles.button} onPress={submitGuess}>
-            <Text style={styles.buttonText}>Submit Guess</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 18, marginTop: 8 },
-  photo: { width: '100%', height: 240, borderRadius: 16, marginBottom: 12 },
-  caption: { fontSize: 14, color: '#777', marginBottom: 20, fontStyle: 'italic' },
-  label: { fontSize: 13, fontWeight: '600', color: '#888', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
-  dateBtn: {
-    borderWidth: 1, borderColor: '#e5e5e5', borderRadius: 10,
-    padding: 14, marginBottom: 24,
+  root: {
+    flex: 1,
+    backgroundColor: C.bg,
   },
-  dateBtnText: { fontSize: 15 },
-  button: {
-    backgroundColor: '#4ECDC4', borderRadius: 10,
-    padding: 16, alignItems: 'center',
+  loadingRoot: {
+    flex: 1,
+    backgroundColor: C.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  resultBox: {
-    backgroundColor: '#f9f9f9', borderRadius: 16,
-    padding: 24, alignItems: 'center',
+  errorText: {
+    color: C.text2,
+    fontSize: 16,
   },
-  resultLabel: { fontSize: 26, fontWeight: '700', marginBottom: 8 },
-  resultPoints: { fontSize: 52, fontWeight: '900', color: '#FF6B6B', marginBottom: 8 },
-  resultDays: { fontSize: 15, color: '#555', marginBottom: 4 },
-  resultActual: { fontSize: 13, color: '#aaa' },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 16, color: '#aaa' },
+  backBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  backBtnText: {
+    fontSize: 22,
+    color: C.text2,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    gap: 16,
+  },
+  polaroidWrap: {
+    alignItems: 'center',
+  },
+  polaroid: {
+    backgroundColor: C.white,
+    padding: 8,
+    paddingBottom: 32,
+    borderRadius: R.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  photo: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    borderRadius: 2,
+  },
+  zoomHint: {
+    fontSize: 11,
+    color: C.text3,
+    marginTop: 8,
+    letterSpacing: 0.3,
+  },
+  captionWrap: {
+    backgroundColor: C.surface,
+    borderRadius: R.md,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: C.primary,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  captionQuote: {
+    fontSize: 28,
+    color: C.primary,
+    lineHeight: 24,
+    fontWeight: '800',
+  },
+  caption: {
+    flex: 1,
+    fontSize: 15,
+    color: C.text2,
+    lineHeight: 22,
+    fontStyle: 'italic',
+  },
+  guessCard: {
+    backgroundColor: C.surface,
+    borderRadius: R.xl,
+    padding: 22,
+    gap: 16,
+    borderWidth: 0.5,
+    borderColor: C.border,
+  },
+  guessLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: C.text3,
+    letterSpacing: 1.5,
+  },
+  datePicker: {
+    backgroundColor: C.surface2,
+    borderRadius: R.md,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  datePickerLeft: {
+    gap: 3,
+  },
+  datePickerHint: {
+    fontSize: 11,
+    color: C.text3,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  datePickerValue: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: C.text,
+  },
+  datePickerEdit: {
+    fontSize: 13,
+    color: C.primary,
+    fontWeight: '600',
+  },
+  submitBtn: {
+    backgroundColor: C.primary,
+    borderRadius: R.md,
+    paddingVertical: 16,
+    alignItems: 'center',
+    shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  submitBtnText: {
+    color: C.white,
+    fontWeight: '800',
+    fontSize: 16,
+    letterSpacing: 0.2,
+  },
+  resultCard: {
+    backgroundColor: C.surface,
+    borderRadius: R.xl,
+    padding: 28,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 0.5,
+    borderColor: C.border,
+  },
+  resultLabel: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: C.text,
+    letterSpacing: -0.2,
+    marginBottom: 4,
+  },
+  resultPoints: {
+    fontSize: 72,
+    fontWeight: '900',
+    letterSpacing: -2,
+    lineHeight: 76,
+  },
+  resultPtsLabel: {
+    fontSize: 14,
+    color: C.text3,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  resultDivider: {
+    width: 40,
+    height: 1,
+    backgroundColor: C.border,
+    marginVertical: 8,
+  },
+  resultDays: {
+    fontSize: 16,
+    color: C.text2,
+    fontWeight: '600',
+  },
+  resultActual: {
+    fontSize: 13,
+    color: C.text3,
+    marginTop: 2,
+  },
+  doneBtn: {
+    backgroundColor: C.surface2,
+    borderRadius: R.md,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    marginTop: 8,
+  },
+  doneBtnText: {
+    color: C.text2,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  zoomModal: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+  },
+  zoomClose: {
+    position: 'absolute',
+    top: 48,
+    right: 20,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  zoomCloseText: {
+    color: C.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  zoomImage: {
+    width: '100%',
+    height: '100%',
+  },
 });

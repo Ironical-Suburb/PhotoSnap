@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Alert,
+  StyleSheet, ActivityIndicator, Alert, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import type { User } from '../../types';
+import { C, R } from '../../theme';
 
 type SearchResult = User & { friendshipStatus: 'none' | 'pending_sent' | 'pending_received' | 'accepted' };
 
@@ -29,7 +31,6 @@ export default function FriendSearchScreen() {
 
     if (!users) { setLoading(false); return; }
 
-    // Fetch all friendships involving this user in one query
     const { data: friendships } = await supabase
       .from('friendships')
       .select('sender_id, receiver_id, status')
@@ -59,108 +60,217 @@ export default function FriendSearchScreen() {
 
     if (error) Alert.alert('Error', error.message);
     else {
-      Alert.alert('Request sent', `Friend request sent to ${name}.`);
       setResults((prev) =>
         prev.map((r) => r.id === targetId ? { ...r, friendshipStatus: 'pending_sent' } : r)
       );
     }
   }
 
-  function statusButton(item: SearchResult) {
+  function StatusChip({ item }: { item: SearchResult }) {
     switch (item.friendshipStatus) {
-      case 'accepted': return <Text style={styles.statusFriend}>Friends</Text>;
-      case 'pending_sent': return <Text style={styles.statusPending}>Sent</Text>;
-      case 'pending_received': return <Text style={styles.statusPending}>Requested you</Text>;
+      case 'accepted':
+        return <View style={[styles.chip, styles.chipFriend]}><Text style={styles.chipTextFriend}>Friends</Text></View>;
+      case 'pending_sent':
+        return <View style={[styles.chip, styles.chipPending]}><Text style={styles.chipTextPending}>Sent</Text></View>;
+      case 'pending_received':
+        return <View style={[styles.chip, styles.chipPending]}><Text style={styles.chipTextPending}>Wants to add you</Text></View>;
       default:
         return (
-          <TouchableOpacity style={styles.addBtn} onPress={() => sendRequest(item.id, item.display_name)}>
-            <Text style={styles.addBtnText}>Add</Text>
+          <TouchableOpacity
+            style={[styles.chip, styles.chipAdd]}
+            onPress={() => sendRequest(item.id, item.display_name)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.chipTextAdd}>+ Add</Text>
           </TouchableOpacity>
         );
     }
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchRow}>
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+      <View style={styles.header}>
+        <Text style={styles.title}>Find Friends</Text>
+      </View>
+
+      <View style={styles.searchBar}>
+        <Text style={styles.searchIcon}>⌕</Text>
         <TextInput
-          style={styles.input}
+          style={styles.searchInput}
           placeholder="Search by display name..."
+          placeholderTextColor={C.text3}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={search}
           returnKeyType="search"
           autoFocus
+          selectionColor={C.primary}
         />
-        <TouchableOpacity style={styles.searchBtn} onPress={search}>
-          <Text style={styles.searchBtnText}>Search</Text>
-        </TouchableOpacity>
+        {query.length > 0 && (
+          <TouchableOpacity onPress={search} style={styles.searchBtn}>
+            <Text style={styles.searchBtnText}>Go</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {loading
-        ? <ActivityIndicator style={{ marginTop: 40 }} />
-        : (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.row}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{item.display_name[0].toUpperCase()}</Text>
-                </View>
-                <View style={styles.info}>
-                  <Text style={styles.name}>{item.display_name}</Text>
-                  <Text style={styles.email}>{item.email}</Text>
-                </View>
-                {statusButton(item)}
+      {loading ? (
+        <ActivityIndicator color={C.primary} style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={results}
+          keyExtractor={(item, index) => item.id ?? String(index)}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <View style={styles.row}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {(item.display_name?.[0] ?? '?').toUpperCase()}
+                </Text>
               </View>
-            )}
-            ListEmptyComponent={
-              query.length > 0
-                ? <Text style={styles.noResults}>No users found</Text>
-                : null
-            }
-          />
-        )}
-    </View>
+              <View style={styles.info}>
+                <Text style={styles.name}>{item.display_name}</Text>
+                <Text style={styles.email}>{item.email}</Text>
+              </View>
+              <StatusChip item={item} />
+            </View>
+          )}
+          ListEmptyComponent={
+            query.length > 0 ? (
+              <Text style={styles.noResults}>No users found for "{query}"</Text>
+            ) : null
+          }
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  searchRow: {
-    flexDirection: 'row', padding: 16, gap: 10,
-    borderBottomWidth: 1, borderBottomColor: '#f0f0f0',
+  root: {
+    flex: 1,
+    backgroundColor: C.bg,
   },
-  input: {
-    flex: 1, borderWidth: 1, borderColor: '#ddd',
-    borderRadius: 10, padding: 12, fontSize: 15,
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: C.text,
+    letterSpacing: -0.3,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    paddingHorizontal: 14,
+    borderWidth: 0.5,
+    borderColor: C.border,
+    marginBottom: 8,
+  },
+  searchIcon: {
+    fontSize: 18,
+    color: C.text3,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: C.text,
   },
   searchBtn: {
-    backgroundColor: '#FF6B6B', borderRadius: 10,
-    paddingHorizontal: 16, justifyContent: 'center',
+    backgroundColor: C.primary,
+    borderRadius: R.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  searchBtnText: { color: '#fff', fontWeight: '600' },
+  searchBtnText: {
+    color: C.white,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    gap: 8,
+  },
   row: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#f5f5f5',
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: C.border,
+    gap: 12,
   },
   avatar: {
-    width: 42, height: 42, borderRadius: 21,
-    backgroundColor: '#4ECDC4', justifyContent: 'center', alignItems: 'center',
-    marginRight: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: C.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600' },
-  email: { fontSize: 13, color: '#999' },
-  addBtn: {
-    backgroundColor: '#FF6B6B', borderRadius: 16,
-    paddingHorizontal: 14, paddingVertical: 7,
+  avatarText: {
+    color: C.white,
+    fontWeight: '800',
+    fontSize: 17,
   },
-  addBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  statusFriend: { color: '#4ECDC4', fontWeight: '600', fontSize: 13 },
-  statusPending: { color: '#bbb', fontWeight: '500', fontSize: 13 },
-  noResults: { textAlign: 'center', color: '#bbb', marginTop: 48, fontSize: 15 },
+  info: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: C.text,
+  },
+  email: {
+    fontSize: 12,
+    color: C.text3,
+    marginTop: 2,
+  },
+  chip: {
+    borderRadius: R.full,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipAdd: {
+    backgroundColor: C.primary,
+  },
+  chipTextAdd: {
+    color: C.white,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  chipFriend: {
+    backgroundColor: 'rgba(50,215,75,0.12)',
+  },
+  chipTextFriend: {
+    color: C.success,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  chipPending: {
+    backgroundColor: C.surface2,
+  },
+  chipTextPending: {
+    color: C.text3,
+    fontWeight: '500',
+    fontSize: 12,
+  },
+  noResults: {
+    textAlign: 'center',
+    color: C.text3,
+    marginTop: 48,
+    fontSize: 15,
+  },
 });

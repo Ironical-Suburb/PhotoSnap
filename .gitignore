@@ -31,7 +31,12 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# Firebase
+# google-services.json is intentionally tracked for EAS Build
+GoogleService-Info.plist
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +44,4 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+android/local.properties

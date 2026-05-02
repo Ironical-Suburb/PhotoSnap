@@ -1,12 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
-  StyleSheet, ActivityIndicator,
+  StyleSheet, ActivityIndicator, StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
 import type { AppStackParamList } from '../../navigation/types';
+import TabBar from '../../components/TabBar';
+import { C, R } from '../../theme';
 
 type PendingRound = {
   id: string;
@@ -45,51 +48,202 @@ export default function ChallengesScreen() {
     setLoading(false);
   }
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
+  const pendingCount = rounds.length;
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={rounds}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('Guess', { roundId: item.id })}
-          >
-            <View style={styles.cardLeft}>
-              <Text style={styles.from}>
-                From {item.photos?.sender?.display_name ?? 'a friend'}
-              </Text>
-              <Text style={styles.date}>
-                Received {new Date(item.created_at).toDateString()}
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Inbox</Text>
+          {pendingCount > 0 && (
+            <Text style={styles.subtitle}>{pendingCount} challenge{pendingCount !== 1 ? 's' : ''} waiting</Text>
+          )}
+        </View>
+        {pendingCount > 0 && (
+          <View style={styles.countBubble}>
+            <Text style={styles.countBubbleText}>{pendingCount}</Text>
+          </View>
+        )}
+      </View>
+
+      {loading ? (
+        <ActivityIndicator color={C.primary} style={{ flex: 1 }} />
+      ) : (
+        <FlatList
+          data={rounds}
+          keyExtractor={(item, index) => item.id ?? String(index)}
+          contentContainerStyle={rounds.length === 0 ? styles.emptyContainer : styles.listContent}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('Guess', { roundId: item.id })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardNum}>
+                <Text style={styles.cardNumText}>{String(index + 1).padStart(2, '0')}</Text>
+              </View>
+              <View style={styles.cardInfo}>
+                <Text style={styles.cardFrom}>
+                  From {item.photos?.sender?.display_name ?? 'a friend'}
+                </Text>
+                <Text style={styles.cardDate}>
+                  Received {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </Text>
+              </View>
+              <View style={styles.cardArrow}>
+                <Text style={styles.cardArrowText}>›</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <View style={styles.emptyIcon}>
+                <View style={styles.emptyIconInner} />
+              </View>
+              <Text style={styles.emptyTitle}>All caught up!</Text>
+              <Text style={styles.emptySub}>
+                No challenges waiting.{'\n'}Ask a friend to send you one.
               </Text>
             </View>
-            <Text style={styles.arrow}>›</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No challenges waiting</Text>
-            <Text style={styles.emptySub}>Upload a photo to challenge a friend first.</Text>
-          </View>
-        }
-      />
-    </View>
+          }
+        />
+      )}
+
+      <TabBar challengeCount={pendingCount} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  card: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 18, borderBottomWidth: 1, borderBottomColor: '#f5f5f5',
+  root: {
+    flex: 1,
+    backgroundColor: C.bg,
   },
-  cardLeft: { flex: 1 },
-  from: { fontSize: 16, fontWeight: '600', marginBottom: 3 },
-  date: { fontSize: 13, color: '#aaa' },
-  arrow: { fontSize: 24, color: '#ccc', fontWeight: '300' },
-  empty: { alignItems: 'center', marginTop: 100, paddingHorizontal: 32 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8, color: '#bbb' },
-  emptySub: { fontSize: 14, color: '#ccc', textAlign: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: C.text,
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: C.text2,
+    marginTop: 2,
+  },
+  countBubble: {
+    backgroundColor: C.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countBubbleText: {
+    color: C.white,
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  card: {
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: C.border,
+    gap: 14,
+  },
+  cardNum: {
+    width: 36,
+    height: 36,
+    borderRadius: R.sm,
+    backgroundColor: C.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardNumText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: C.primary,
+    letterSpacing: 0.5,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  cardFrom: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: C.text,
+    marginBottom: 3,
+  },
+  cardDate: {
+    fontSize: 13,
+    color: C.text2,
+  },
+  cardArrow: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: C.surface2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardArrowText: {
+    fontSize: 18,
+    color: C.text2,
+    lineHeight: 20,
+  },
+  empty: {
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    gap: 12,
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: C.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    borderWidth: 0.5,
+    borderColor: C.border,
+  },
+  emptyIconInner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 3,
+    borderColor: C.text3,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: C.text2,
+  },
+  emptySub: {
+    fontSize: 14,
+    color: C.text3,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });

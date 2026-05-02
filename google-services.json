@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "793235765648",
+    "project_id": "photosnap-4a6f8",
+    "storage_bucket": "photosnap-4a6f8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:793235765648:android:1398dad126667498e95b15",
+        "android_client_info": {
+          "package_name": "com.photosnap.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM7fGdhTaadbwanpJd6N_73J215Wke8o0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
