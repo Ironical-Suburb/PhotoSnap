@@ -21,6 +21,7 @@
     "base64-arraybuffer": "^1.0.2",
     "expo": "~55.0.19",
     "expo-constants": "~55.0.15",
+    "expo-crypto": "^55.0.14",
     "expo-file-system": "~55.0.17",
     "expo-image-picker": "~55.0.19",
     "expo-insights": "~55.0.16",
