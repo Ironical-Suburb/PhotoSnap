@@ -103,22 +103,6 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        {/* Send memory card */}
-        <TouchableOpacity
-          style={styles.snapCard}
-          onPress={() => navigation.navigate('Upload')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.snapCardLeft}>
-            <Text style={styles.snapCardLabel}>SNAP & SEND</Text>
-            <Text style={styles.snapCardTitle}>Challenge a friend</Text>
-            <Text style={styles.snapCardSub}>Pick a photo — can they date it?</Text>
-          </View>
-          <View style={styles.snapBtnSmall}>
-            <View style={styles.snapBtnInner} />
-          </View>
-        </TouchableOpacity>
-
         {/* Quick grid */}
         <View style={styles.grid}>
           {([
@@ -273,57 +257,6 @@ const styles = StyleSheet.create({
   mainCardArrow: {
     fontSize: 14,
     color: C.primary,
-  },
-  snapCard: {
-    backgroundColor: C.surface,
-    borderRadius: R.xl,
-    padding: 22,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 0.5,
-    borderColor: C.border,
-  },
-  snapCardLeft: {
-    flex: 1,
-  },
-  snapCardLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: C.primary,
-    letterSpacing: 1.5,
-    marginBottom: 6,
-  },
-  snapCardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: C.text,
-    marginBottom: 4,
-  },
-  snapCardSub: {
-    fontSize: 13,
-    color: C.text2,
-  },
-  snapBtnSmall: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: C.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-    marginLeft: 16,
-  },
-  snapBtnInner: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: C.white,
   },
   grid: {
     flexDirection: 'row',

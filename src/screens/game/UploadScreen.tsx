@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, Image, StyleSheet,
   Alert, ActivityIndicator, Platform, FlatList, Modal, TextInput,
@@ -9,12 +9,24 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { File } from 'expo-file-system/next';
 import { decode } from 'base64-arraybuffer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
 import { sendPushNotification } from '../../lib/notifications';
 import { toLocalDateString, localMidnight } from '../../lib/dates';
 import type { User } from '../../types';
 import TabBar from '../../components/TabBar';
 import { C, R } from '../../theme';
+
+const DRAFT_KEY = 'upload_draft';
+
+type Draft = {
+  imageUri: string;
+  actualDate: string;
+  caption: string;
+  friendId: string | null;
+  friendName: string | null;
+  savedAt: string;
+};
 
 export default function UploadScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -23,12 +35,64 @@ export default function UploadScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [friends, setFriends] = useState<(User & { push_token?: string })[]>([]);
   const [selectedFriend, setSelectedFriend] = useState<(User & { push_token?: string }) | null>(null);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showFriendPicker, setShowFriendPicker] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchFriends();
+    loadDraft();
   }, []);
+
+  // Auto-save draft whenever key fields change
+  useEffect(() => {
+    if (!imageUri && !caption && !selectedFriend) return;
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => saveDraft(), 1500);
+    return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
+  }, [imageUri, actualDate, caption, selectedFriend]);
+
+  async function loadDraft() {
+    try {
+      const raw = await AsyncStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft: Draft = JSON.parse(raw);
+      Alert.alert(
+        'Resume draft?',
+        `You have an unsent challenge saved ${new Date(draft.savedAt).toLocaleDateString()}.`,
+        [
+          { text: 'Discard', style: 'destructive', onPress: () => AsyncStorage.removeItem(DRAFT_KEY) },
+          {
+            text: 'Resume', onPress: () => {
+              setImageUri(draft.imageUri);
+              setActualDate(new Date(draft.actualDate));
+              setCaption(draft.caption);
+            },
+          },
+        ]
+      );
+    } catch {}
+  }
+
+  async function saveDraft() {
+    if (!imageUri && !caption) return;
+    const draft: Draft = {
+      imageUri: imageUri ?? '',
+      actualDate: actualDate.toISOString(),
+      caption,
+      friendId: selectedFriend?.id ?? null,
+      friendName: selectedFriend?.display_name ?? null,
+      savedAt: new Date().toISOString(),
+    };
+    await AsyncStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2000);
+  }
+
+  async function clearDraft() {
+    await AsyncStorage.removeItem(DRAFT_KEY);
+  }
 
   async function fetchFriends() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -118,6 +182,7 @@ export default function UploadScreen() {
         );
       }
 
+      await clearDraft();
       Alert.alert('Sent!', `${selectedFriend.display_name} has been challenged.`);
       setImageUri(null);
       setCaption('');
@@ -142,9 +207,33 @@ export default function UploadScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
           <View style={styles.header}>
-            <Text style={styles.title}>Snap & Send</Text>
-            <Text style={styles.subtitle}>Challenge a friend to date your memory</Text>
+            <View>
+              <Text style={styles.title}>Snap & Send</Text>
+              <Text style={styles.subtitle}>Challenge a friend to date your memory</Text>
+            </View>
+            {(imageUri || caption) && (
+              <TouchableOpacity
+                style={styles.discardBtn}
+                onPress={() => Alert.alert('Discard draft?', 'This will clear your current photo and caption.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Discard', style: 'destructive', onPress: () => {
+                    setImageUri(null);
+                    setCaption('');
+                    setSelectedFriend(null);
+                    clearDraft();
+                  }},
+                ])}
+              >
+                <Text style={styles.discardBtnText}>Discard</Text>
+              </TouchableOpacity>
+            )}
           </View>
+
+          {draftSaved && (
+            <View style={styles.draftBanner}>
+              <Text style={styles.draftBannerText}>Draft saved</Text>
+            </View>
+          )}
 
           {/* Photo picker */}
           <TouchableOpacity
@@ -329,7 +418,35 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   header: {
-    gap: 4,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  discardBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: R.full,
+    backgroundColor: C.surface2,
+    marginTop: 4,
+  },
+  discardBtnText: {
+    fontSize: 13,
+    color: C.error,
+    fontWeight: '600',
+  },
+  draftBanner: {
+    backgroundColor: 'rgba(50,215,75,0.12)',
+    borderRadius: R.md,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignSelf: 'flex-start',
+    borderWidth: 0.5,
+    borderColor: 'rgba(50,215,75,0.3)',
+  },
+  draftBannerText: {
+    fontSize: 12,
+    color: C.success,
+    fontWeight: '600',
   },
   title: {
     fontSize: 28,
