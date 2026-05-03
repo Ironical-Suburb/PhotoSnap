@@ -120,7 +120,10 @@ export default function ChallengesScreen() {
                   <TouchableOpacity
                     key={convo.senderId}
                     style={styles.dmCard}
-                    onPress={() => navigation.navigate('Chat', { friendId: convo.senderId, friendName: convo.senderName })}
+                    onPress={() => {
+                      setUnreadDMs((prev) => prev.filter((d) => d.senderId !== convo.senderId));
+                      navigation.navigate('Chat', { friendId: convo.senderId, friendName: convo.senderName });
+                    }}
                     activeOpacity={0.8}
                   >
                     <View style={styles.dmAvatar}>

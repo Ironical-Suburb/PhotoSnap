@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, Switch,
+  View, Text, TextInput, TouchableOpacity, Switch, Image,
   StyleSheet, Alert, ActivityIndicator,
   KeyboardAvoidingView, Platform, ScrollView, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { backupKey } from '../../lib/crypto';
 import type { User } from '../../types';
@@ -19,6 +20,7 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [backupEnabled, setBackupEnabled] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -86,6 +88,45 @@ export default function ProfileScreen() {
     setSaving(false);
   }
 
+  async function pickAvatar() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo library access to set a profile picture.'); return; }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+    if (result.canceled || !result.assets[0].base64) return;
+
+    setAvatarUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { decode } = await import('base64-arraybuffer');
+      const filePath = `avatars/${user.id}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, decode(result.assets[0].base64), { contentType: 'image/jpeg', upsert: true });
+      if (upErr) throw upErr;
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const avatarUrl = `${publicUrl}?t=${Date.now()}`;
+
+      const { error: dbErr } = await supabase.from('users').update({ avatar_url: avatarUrl }).eq('id', user.id);
+      if (dbErr) throw dbErr;
+
+      setProfile((p) => p ? { ...p, avatar_url: avatarUrl } : p);
+    } catch (e: any) {
+      Alert.alert('Upload failed', e.message);
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
   async function signOut() {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -117,13 +158,25 @@ export default function ProfileScreen() {
 
           {/* Avatar hero */}
           <View style={styles.hero}>
-            <View style={styles.avatarRing}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {(profile.display_name?.[0] ?? '?').toUpperCase()}
-                </Text>
+            <TouchableOpacity onPress={pickAvatar} activeOpacity={0.85} disabled={avatarUploading}>
+              <View style={styles.avatarRing}>
+                <View style={styles.avatar}>
+                  {profile.avatar_url ? (
+                    <Image source={{ uri: profile.avatar_url }} style={styles.avatarImage} />
+                  ) : (
+                    <Text style={styles.avatarText}>
+                      {(profile.display_name?.[0] ?? '?').toUpperCase()}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.avatarEditBadge}>
+                  {avatarUploading
+                    ? <ActivityIndicator color={C.white} size="small" />
+                    : <Text style={styles.avatarEditBadgeText}>✎</Text>
+                  }
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
             <Text style={styles.heroName}>{profile.display_name}</Text>
             <Text style={styles.heroEmail}>{profile.email}</Text>
           </View>
@@ -275,10 +328,33 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
+  avatarImage: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
   avatarText: {
     color: C.white,
     fontSize: 38,
     fontWeight: '900',
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: C.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: C.bg,
+  },
+  avatarEditBadgeText: {
+    color: C.white,
+    fontSize: 13,
+    fontWeight: '700',
   },
   heroName: {
     fontSize: 24,

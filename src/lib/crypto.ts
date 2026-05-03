@@ -113,9 +113,16 @@ export async function decryptToLocalUri(storageUrl: string): Promise<string> {
     return cachedPath;
   }
 
-  // Download encrypted file
+  // Download encrypted file — try signed URL first to support private buckets
   const tempPath = `${FileSystem.cacheDirectory}ps_enc_${Date.now()}.bin`;
-  await FileSystem.downloadAsync(storageUrl, tempPath);
+  const storagePath = storageUrl.match(/\/Photos\/(.+)$/)?.[1];
+  let downloadUrl = storageUrl;
+  if (storagePath) {
+    const { data: signed } = await supabase.storage.from('Photos').createSignedUrl(storagePath, 3600);
+    if (signed?.signedUrl) downloadUrl = signed.signedUrl;
+  }
+  const dlResult = await FileSystem.downloadAsync(downloadUrl, tempPath);
+  if (dlResult.status !== 200) throw new Error(`Download failed: ${dlResult.status}`);
 
   const b64 = await FileSystem.readAsStringAsync(tempPath, {
     encoding: 'base64' as any,

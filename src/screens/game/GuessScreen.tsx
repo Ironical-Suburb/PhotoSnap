@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import EncryptedImage from '../../components/EncryptedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateSlider from '../../components/DateSlider';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -140,17 +140,10 @@ export default function GuessScreen() {
           <View style={styles.guessCard}>
             <Text style={styles.guessLabel}>WHEN WAS THIS TAKEN?</Text>
 
-            <Text style={styles.datePickerHint}>Your guess</Text>
-            <DateTimePicker
+            <DateSlider
               value={guessDate}
-              mode="date"
-              display="spinner"
+              onChange={(d) => setGuessDate(localMidnight(d))}
               maximumDate={new Date()}
-              textColor={C.text}
-              style={styles.datePicker}
-              onChange={(_, date) => {
-                if (date) setGuessDate(localMidnight(date));
-              }}
             />
 
             <TouchableOpacity style={styles.submitBtn} onPress={submitGuess} activeOpacity={0.85}>
@@ -265,15 +258,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     color: C.text3,
-    letterSpacing: 1.5,
-  },
-  datePicker: {
-    width: '100%',
-  },
-  datePickerHint: {
-    fontSize: 10,
-    color: C.text3,
-    fontWeight: '800',
     letterSpacing: 1.5,
   },
   submitBtn: {

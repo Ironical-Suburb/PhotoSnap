@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateSlider from '../../components/DateSlider';
 import { decode } from 'base64-arraybuffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
@@ -287,15 +287,10 @@ export default function UploadScreen() {
           {/* Date */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>ACTUAL DATE TAKEN</Text>
-            <DateTimePicker
+            <DateSlider
               value={actualDate}
-              mode="date"
-              display="spinner"
+              onChange={(d) => setActualDate(localMidnight(d))}
               maximumDate={new Date()}
-              style={{ width: '100%' }}
-              onChange={(_, date) => {
-                if (date) setActualDate(localMidnight(date));
-              }}
             />
           </View>
 
