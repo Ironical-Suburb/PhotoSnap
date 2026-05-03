@@ -76,7 +76,7 @@ export async function encryptFileToBase64(localUri: string): Promise<string> {
   const key = await getOrCreateKey();
 
   const b64 = await FileSystem.readAsStringAsync(localUri, {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: 'base64' as any,
   });
   const plainBytes = base64ToBytes(b64);
   const padded = pkcs7Pad(plainBytes);
@@ -118,7 +118,7 @@ export async function decryptToLocalUri(storageUrl: string): Promise<string> {
   await FileSystem.downloadAsync(storageUrl, tempPath);
 
   const b64 = await FileSystem.readAsStringAsync(tempPath, {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: 'base64' as any,
   });
   await FileSystem.deleteAsync(tempPath, { idempotent: true });
 
@@ -135,7 +135,7 @@ export async function decryptToLocalUri(storageUrl: string): Promise<string> {
 
   // Write decrypted image to cache
   await FileSystem.writeAsStringAsync(cachedPath, bytesToBase64(decrypted), {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: 'base64' as any,
   });
 
   decryptCache.set(storageUrl, cachedPath);
