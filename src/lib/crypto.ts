@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ExpoCrypto from 'expo-crypto';
 import * as aesjs from 'aes-js';
 import { supabase } from './supabase';
