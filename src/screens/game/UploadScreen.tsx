@@ -165,7 +165,7 @@ export default function UploadScreen() {
 
       const { error: storageError } = await supabase.storage
         .from('Photos')
-        .upload(fileName, decode(encryptedBase64), { contentType: 'application/octet-stream' });
+        .upload(fileName, decode(encryptedBase64), { contentType: 'image/jpeg' });
 
       if (storageError) throw storageError;
 
