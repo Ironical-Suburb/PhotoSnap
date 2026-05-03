@@ -59,6 +59,19 @@ export async function hasLocalKey(): Promise<boolean> {
 
 // ─── Encrypt ──────────────────────────────────────────────────────────────────
 
+function pkcs7Pad(bytes: Uint8Array): Uint8Array {
+  const pad = 16 - (bytes.length % 16);
+  const padded = new Uint8Array(bytes.length + pad);
+  padded.set(bytes);
+  padded.fill(pad, bytes.length);
+  return padded;
+}
+
+function pkcs7Strip(bytes: Uint8Array): Uint8Array {
+  const pad = bytes[bytes.length - 1];
+  return bytes.slice(0, bytes.length - pad);
+}
+
 export async function encryptFileToBase64(localUri: string): Promise<string> {
   const key = await getOrCreateKey();
 
@@ -66,18 +79,13 @@ export async function encryptFileToBase64(localUri: string): Promise<string> {
     encoding: FileSystem.EncodingType.Base64,
   });
   const plainBytes = base64ToBytes(b64);
+  const padded = pkcs7Pad(plainBytes);
 
-  // Pad to AES block size (16 bytes)
-  const padded = aesjs.padding.pkcs7.pad(plainBytes);
-
-  // Random 16-byte IV
   const iv = await ExpoCrypto.getRandomBytesAsync(16);
 
-  // AES-256-CBC encrypt
   const aesCbc = new aesjs.ModeOfOperation.cbc(key, iv);
   const encrypted = aesCbc.encrypt(padded);
 
-  // Combine: [iv 16 bytes][encrypted bytes]
   const combined = new Uint8Array(16 + encrypted.length);
   combined.set(iv, 0);
   combined.set(encrypted, 16);
@@ -123,7 +131,7 @@ export async function decryptToLocalUri(storageUrl: string): Promise<string> {
   // Decrypt
   const aesCbc = new aesjs.ModeOfOperation.cbc(key, iv);
   const decryptedPadded = aesCbc.decrypt(cipherBytes);
-  const decrypted = aesjs.padding.pkcs7.strip(decryptedPadded);
+  const decrypted = pkcs7Strip(decryptedPadded);
 
   // Write decrypted image to cache
   await FileSystem.writeAsStringAsync(cachedPath, bytesToBase64(decrypted), {
