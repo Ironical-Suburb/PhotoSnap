@@ -19,7 +19,6 @@ type WheelProps = {
 
 function Wheel({ items, selectedIndex, onSelect, flex = 1 }: WheelProps) {
   const ref = useRef<ScrollView>(null);
-  const isUserScroll = useRef(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -27,11 +26,7 @@ function Wheel({ items, selectedIndex, onSelect, flex = 1 }: WheelProps) {
     }, 80);
   }, []);
 
-  const onScrollBegin = useCallback(() => { isUserScroll.current = true; }, []);
-
   const onScrollEnd = useCallback((e: any) => {
-    if (!isUserScroll.current) return;
-    isUserScroll.current = false;
     const y = e.nativeEvent.contentOffset.y;
     const idx = Math.max(0, Math.min(Math.round(y / ITEM_H), items.length - 1));
     onSelect(idx);
@@ -44,8 +39,8 @@ function Wheel({ items, selectedIndex, onSelect, flex = 1 }: WheelProps) {
       showsVerticalScrollIndicator={false}
       snapToInterval={ITEM_H}
       decelerationRate="fast"
-      onScrollBeginDrag={onScrollBegin}
       onMomentumScrollEnd={onScrollEnd}
+      onScrollEndDrag={onScrollEnd}
       contentContainerStyle={{ paddingVertical: PAD }}
     >
       {items.map((item, i) => {

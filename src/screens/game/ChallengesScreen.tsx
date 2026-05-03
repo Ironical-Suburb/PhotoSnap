@@ -32,6 +32,7 @@ export default function ChallengesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const [rounds, setRounds] = useState<PendingRound[]>([]);
   const [unreadDMs, setUnreadDMs] = useState<UnreadConvo[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -44,6 +45,7 @@ export default function ChallengesScreen() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    setUserId(user.id);
 
     const [{ data: roundData }, { data: msgs }] = await Promise.all([
       supabase
@@ -122,6 +124,13 @@ export default function ChallengesScreen() {
                     style={styles.dmCard}
                     onPress={() => {
                       setUnreadDMs((prev) => prev.filter((d) => d.senderId !== convo.senderId));
+                      if (userId) {
+                        supabase.from('messages')
+                          .update({ read_at: new Date().toISOString() })
+                          .eq('sender_id', convo.senderId)
+                          .eq('receiver_id', userId)
+                          .is('read_at', null);
+                      }
                       navigation.navigate('Chat', { friendId: convo.senderId, friendName: convo.senderName });
                     }}
                     activeOpacity={0.8}

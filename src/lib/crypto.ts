@@ -1,10 +1,7 @@
-import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ExpoCrypto from 'expo-crypto';
 import * as aesjs from 'aes-js';
 import { supabase } from './supabase';
-
-const KEY_STORE_KEY = 'photosnap_enc_key_v1';
 
 // ─── Base64 helpers (chunked to avoid stack overflow on large files) ───────────
 
@@ -25,37 +22,26 @@ function base64ToBytes(b64: string): Uint8Array {
 }
 
 // ─── Key management ───────────────────────────────────────────────────────────
+// Fixed app-level key derived from SHA-256 of a constant seed.
+// All users share the same key so photos are viewable across devices.
+
+let _cachedKey: Uint8Array | null = null;
 
 export async function getOrCreateKey(): Promise<Uint8Array> {
-  const stored = await SecureStore.getItemAsync(KEY_STORE_KEY);
-  if (stored) return base64ToBytes(stored);
-
-  const keyBytes = await ExpoCrypto.getRandomBytesAsync(32); // AES-256
-  await SecureStore.setItemAsync(KEY_STORE_KEY, bytesToBase64(keyBytes));
-  return keyBytes;
+  if (_cachedKey) return _cachedKey;
+  const hex = await ExpoCrypto.digestStringAsync(
+    ExpoCrypto.CryptoDigestAlgorithm.SHA256,
+    'PhotoSnapV1AppSharedKey2025FixedForAllUsers',
+  );
+  const bytes = new Uint8Array(32);
+  for (let i = 0; i < 32; i++) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  _cachedKey = bytes;
+  return bytes;
 }
 
-export async function backupKey(userId: string): Promise<void> {
-  const keyB64 = await SecureStore.getItemAsync(KEY_STORE_KEY);
-  if (!keyB64) return;
-  await supabase.from('users').update({ encryption_key: keyB64 }).eq('id', userId);
-}
-
-export async function restoreKeyFromBackup(userId: string): Promise<boolean> {
-  const { data } = await supabase
-    .from('users')
-    .select('encryption_key')
-    .eq('id', userId)
-    .single();
-  if (!data?.encryption_key) return false;
-  await SecureStore.setItemAsync(KEY_STORE_KEY, data.encryption_key);
-  return true;
-}
-
-export async function hasLocalKey(): Promise<boolean> {
-  const k = await SecureStore.getItemAsync(KEY_STORE_KEY);
-  return !!k;
-}
+export async function backupKey(_userId: string): Promise<void> {}
+export async function restoreKeyFromBackup(_userId: string): Promise<boolean> { return true; }
+export async function hasLocalKey(): Promise<boolean> { return true; }
 
 // ─── Encrypt ──────────────────────────────────────────────────────────────────
 

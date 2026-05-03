@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
+  View, Text, TextInput, TouchableOpacity, Image,
   StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
@@ -39,11 +39,11 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
         <View style={styles.hero}>
-          <View style={styles.cameraIcon}>
-            <View style={styles.cameraLens} />
-            <View style={styles.cameraFlash} />
-          </View>
-          <Text style={styles.title}>PhotoSnap</Text>
+          <Image
+            source={require('../../../assets/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.tagline}>Send a photo. Let them guess when.</Text>
         </View>
 
@@ -122,41 +122,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 48,
   },
-  cameraIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: R.lg,
-    backgroundColor: C.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  cameraLens: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 4,
-    borderColor: C.white,
-  },
-  cameraFlash: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: C.accent,
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: C.text,
-    letterSpacing: -0.5,
+  logo: {
+    width: 220,
+    height: 220,
     marginBottom: 8,
   },
   tagline: {
