@@ -5,6 +5,10 @@ export type User = {
   avatar_url?: string;
   created_at: string;
   backup_enabled?: boolean;
+  push_token?: string;
+  current_streak?: number;
+  longest_streak?: number;
+  last_post_date?: string | null;
 };
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'rejected';
@@ -17,19 +21,25 @@ export type Friendship = {
   created_at: string;
 };
 
-// Friendship row joined with the other user's profile
 export type FriendWithProfile = Friendship & {
   other_user: User;
 };
 
+export type ChallengeType = 'date' | 'location' | 'both' | 'none';
+
 export type Photo = {
   id: string;
   sender_id: string;
-  receiver_id: string;
+  receiver_id?: string | null;
   storage_url: string;
-  actual_date: string; // ISO date — never exposed to the guesser before resolving
+  actual_date?: string | null;
   caption?: string;
   created_at: string;
+  is_post?: boolean;
+  challenge_type?: ChallengeType;
+  location_lat?: number | null;
+  location_lon?: number | null;
+  location_hint?: string | null;
 };
 
 export type Round = {
@@ -37,9 +47,38 @@ export type Round = {
   photo_id: string;
   guesser_id: string;
   guess_date: string | null;
+  guess_location: string | null;
   score: number | null;
   resolved_at: string | null;
   created_at: string;
+};
+
+export type PostLike = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+export type PostReaction = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+};
+
+export type DailyMoment = {
+  id: string;
+  triggered_at: string;
+  expires_at: string;
+  is_active: boolean;
+};
+
+export type FeedPost = Photo & {
+  sender: Pick<User, 'id' | 'display_name' | 'avatar_url' | 'current_streak'>;
+  post_likes: PostLike[];
+  post_reactions: PostReaction[];
 };
 
 export type LeaderboardEntry = {

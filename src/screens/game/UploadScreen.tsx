@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, Image, StyleSheet,
-  Alert, ActivityIndicator, Platform, FlatList, Modal, TextInput,
+  Alert, ActivityIndicator, Platform, TextInput,
   StatusBar, ScrollView, KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,23 +12,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { supabase } from '../../lib/supabase';
-import { sendPushNotification } from '../../lib/notifications';
 import { toLocalDateString, localMidnight } from '../../lib/dates';
 import { encryptFileToBase64 } from '../../lib/crypto';
-import type { User } from '../../types';
+import type { ChallengeType, DailyMoment } from '../../types';
 import type { AppStackParamList } from '../../navigation/types';
 import TabBar from '../../components/TabBar';
 import { C, R } from '../../theme';
 
-export const DRAFTS_KEY = 'upload_drafts_v2';
+export const DRAFTS_KEY = 'upload_drafts_v3';
 
 export type Draft = {
   id: string;
   imageUri: string;
   actualDate: string;
   caption: string;
-  friendId: string | null;
-  friendName: string | null;
+  challengeType: ChallengeType;
+  locationHint: string;
   savedAt: string;
 };
 
@@ -52,7 +51,36 @@ export async function deleteDraft(id: string): Promise<void> {
   await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts.filter((d) => d.id !== id)));
 }
 
+async function updateStreak(userId: string) {
+  const { data: u } = await supabase
+    .from('users')
+    .select('current_streak, longest_streak, last_post_date')
+    .eq('id', userId)
+    .single();
+  if (!u) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  if (u.last_post_date === today) return; // already posted today
+
+  const newStreak = u.last_post_date === yesterday ? (u.current_streak ?? 0) + 1 : 1;
+  const newLongest = Math.max(newStreak, u.longest_streak ?? 0);
+
+  await supabase.from('users').update({
+    current_streak: newStreak,
+    longest_streak: newLongest,
+    last_post_date: today,
+  }).eq('id', userId);
+}
+
 type UploadRoute = RouteProp<AppStackParamList, 'Upload'>;
+
+const CHALLENGE_OPTIONS: { type: ChallengeType; label: string; icon: string }[] = [
+  { type: 'date',     label: 'Date guess',     icon: '📅' },
+  { type: 'location', label: 'Location guess', icon: '📍' },
+  { type: 'none',     label: 'No challenge',   icon: '🖼️' },
+];
 
 export default function UploadScreen() {
   const route = useRoute<UploadRoute>();
@@ -62,27 +90,38 @@ export default function UploadScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [actualDate, setActualDate] = useState(() => localMidnight());
   const [caption, setCaption] = useState('');
-  const [friends, setFriends] = useState<(User & { push_token?: string })[]>([]);
-  const [selectedFriend, setSelectedFriend] = useState<(User & { push_token?: string }) | null>(null);
+  const [challengeType, setChallengeType] = useState<ChallengeType>('date');
+  const [locationHint, setLocationHint] = useState('');
+  const [isDailyMoment, setIsDailyMoment] = useState(false);
+  const [activeDailyMoment, setActiveDailyMoment] = useState<DailyMoment | null>(null);
   const [draftSaved, setDraftSaved] = useState(false);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [showFriendPicker, setShowFriendPicker] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetchFriends();
-    if (incomingDraftId) {
-      loadSpecificDraft(incomingDraftId);
-    }
+    if (incomingDraftId) loadSpecificDraft(incomingDraftId);
+    checkDailyMoment();
   }, []);
 
-  // Auto-save draft whenever key fields change
   useEffect(() => {
-    if (!imageUri && !caption && !selectedFriend) return;
+    if (!imageUri && !caption) return;
     if (draftTimer.current) clearTimeout(draftTimer.current);
     draftTimer.current = setTimeout(() => saveDraft(), 1500);
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
-  }, [imageUri, actualDate, caption, selectedFriend]);
+  }, [imageUri, actualDate, caption, challengeType, locationHint]);
+
+  async function checkDailyMoment() {
+    const { data } = await supabase
+      .from('daily_moments')
+      .select('*')
+      .eq('is_active', true)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+    if (data) {
+      setActiveDailyMoment(data as DailyMoment);
+      setIsDailyMoment(true);
+    }
+  }
 
   async function loadSpecificDraft(id: string) {
     const drafts = await getAllDrafts();
@@ -91,6 +130,8 @@ export default function UploadScreen() {
     setImageUri(draft.imageUri);
     setActualDate(new Date(draft.actualDate));
     setCaption(draft.caption);
+    setChallengeType(draft.challengeType ?? 'date');
+    setLocationHint(draft.locationHint ?? '');
   }
 
   async function saveDraft() {
@@ -100,8 +141,8 @@ export default function UploadScreen() {
       imageUri: imageUri ?? '',
       actualDate: actualDate.toISOString(),
       caption,
-      friendId: selectedFriend?.id ?? null,
-      friendName: selectedFriend?.display_name ?? null,
+      challengeType,
+      locationHint,
       savedAt: new Date().toISOString(),
     };
     await saveDraftToStore(draft);
@@ -113,33 +154,10 @@ export default function UploadScreen() {
     await deleteDraft(draftId);
   }
 
-  async function fetchFriends() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: friendships } = await supabase
-      .from('friendships')
-      .select('sender_id, receiver_id')
-      .eq('status', 'accepted')
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
-
-    if (!friendships?.length) return;
-
-    const otherIds = friendships.map((f) =>
-      f.sender_id === user.id ? f.receiver_id : f.sender_id
-    );
-    const { data: profiles } = await supabase
-      .from('users')
-      .select('id, display_name, email, avatar_url, created_at, push_token')
-      .in('id', otherIds);
-
-    setFriends((profiles ?? []) as (User & { push_token?: string })[]);
-  }
-
   async function pickImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'] as ImagePicker.MediaType[],
-      quality: 0.5,
+      quality: 0.6,
       exif: true,
     });
     if (!result.canceled) {
@@ -152,8 +170,18 @@ export default function UploadScreen() {
     }
   }
 
-  async function upload() {
-    if (!imageUri || !selectedFriend) return;
+  async function post() {
+    if (!imageUri) return;
+
+    if (challengeType === 'date' && !actualDate) {
+      Alert.alert('Date required', 'Pick the date the photo was taken.');
+      return;
+    }
+    if (challengeType === 'location' && !locationHint.trim()) {
+      Alert.alert('Location required', 'Enter where this photo was taken.');
+      return;
+    }
+
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -165,54 +193,41 @@ export default function UploadScreen() {
       const { error: storageError } = await supabase.storage
         .from('Photos')
         .upload(fileName, decode(encryptedBase64), { contentType: 'image/jpeg' });
-
       if (storageError) throw storageError;
 
       const { data: { publicUrl } } = supabase.storage.from('Photos').getPublicUrl(fileName);
 
-      const { data: photo, error: dbError } = await supabase
-        .from('photos')
-        .insert({
-          sender_id: user.id,
-          receiver_id: selectedFriend.id,
-          storage_url: publicUrl,
-          actual_date: toLocalDateString(actualDate),
-          caption: caption.trim() || null,
-        })
-        .select()
-        .single();
-
+      const { error: dbError } = await supabase.from('photos').insert({
+        sender_id: user.id,
+        receiver_id: null,
+        storage_url: publicUrl,
+        actual_date: (challengeType === 'date' || challengeType === 'both')
+          ? toLocalDateString(actualDate)
+          : null,
+        caption: caption.trim() || null,
+        is_post: true,
+        challenge_type: challengeType,
+        location_hint: locationHint.trim() || null,
+        is_daily_moment: isDailyMoment,
+      });
       if (dbError) throw dbError;
 
-      await supabase.from('rounds').insert({
-        photo_id: photo.id,
-        guesser_id: selectedFriend.id,
-      });
-
-      if (selectedFriend.push_token) {
-        const { data: sender } = await supabase
-          .from('users').select('display_name').eq('id', user.id).single();
-        await sendPushNotification(
-          selectedFriend.push_token,
-          'New photo challenge!',
-          `${sender?.display_name ?? 'Someone'} wants you to guess when a photo was taken.`,
-          { screen: 'Challenges' }
-        );
-      }
-
+      await updateStreak(user.id);
       await clearDraft();
-      Alert.alert('Sent!', `${selectedFriend.display_name} has been challenged.`);
+
+      Alert.alert('Posted!', 'Your photo is now on your friends\' feeds.');
       setImageUri(null);
       setCaption('');
-      setSelectedFriend(null);
+      setLocationHint('');
+      setChallengeType('date');
     } catch (e: any) {
-      Alert.alert('Upload failed', e.message);
+      Alert.alert('Post failed', e.message);
     } finally {
       setUploading(false);
     }
   }
 
-  const canUpload = !!imageUri && !!selectedFriend && !uploading;
+  const canPost = !!imageUri && !uploading;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -226,18 +241,18 @@ export default function UploadScreen() {
 
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>Snap & Send</Text>
-              <Text style={styles.subtitle}>Challenge a friend to date your memory</Text>
+              <Text style={styles.title}>New Post</Text>
+              <Text style={styles.subtitle}>Share a memory with your friends</Text>
             </View>
             {(imageUri || caption) && (
               <TouchableOpacity
                 style={styles.discardBtn}
-                onPress={() => Alert.alert('Discard draft?', 'This will clear your current photo and caption.', [
+                onPress={() => Alert.alert('Discard draft?', 'Clear your current photo and caption?', [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Discard', style: 'destructive', onPress: () => {
                     setImageUri(null);
                     setCaption('');
-                    setSelectedFriend(null);
+                    setLocationHint('');
                     clearDraft();
                   }},
                 ])}
@@ -246,6 +261,25 @@ export default function UploadScreen() {
               </TouchableOpacity>
             )}
           </View>
+
+          {activeDailyMoment && (
+            <TouchableOpacity
+              style={[styles.momentToggle, isDailyMoment && styles.momentToggleActive]}
+              onPress={() => setIsDailyMoment((v) => !v)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.momentToggleIcon}>📸</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.momentToggleLabel, isDailyMoment && styles.momentToggleLabelActive]}>
+                  Daily Moment {isDailyMoment ? 'ON' : 'OFF'}
+                </Text>
+                <Text style={styles.momentToggleSub}>
+                  {Math.max(0, Math.floor((new Date(activeDailyMoment.expires_at).getTime() - Date.now()) / 60000))}m left in today's window
+                </Text>
+              </View>
+              <View style={[styles.momentDot, isDailyMoment && styles.momentDotActive]} />
+            </TouchableOpacity>
+          )}
 
           {draftSaved && (
             <View style={styles.draftBanner}>
@@ -268,7 +302,6 @@ export default function UploadScreen() {
               </>
             ) : (
               <>
-                {/* Viewfinder corners */}
                 <View style={[styles.corner, styles.cornerTL]} />
                 <View style={[styles.corner, styles.cornerTR]} />
                 <View style={[styles.corner, styles.cornerBL]} />
@@ -284,22 +317,14 @@ export default function UploadScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Date */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>ACTUAL DATE TAKEN</Text>
-            <DateSlider
-              value={actualDate}
-              onChange={(d) => setActualDate(localMidnight(d))}
-              maximumDate={new Date()}
-            />
-          </View>
-
           {/* Caption */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>CAPTION  <Text style={styles.optionalTag}>OPTIONAL</Text></Text>
+            <Text style={styles.sectionLabel}>
+              CAPTION  <Text style={styles.optionalTag}>OPTIONAL</Text>
+            </Text>
             <TextInput
               style={styles.captionInput}
-              placeholder="Add a hint or a memory clue..."
+              placeholder="Add a memory or a clue..."
               placeholderTextColor={C.text3}
               value={caption}
               onChangeText={setCaption}
@@ -310,91 +335,73 @@ export default function UploadScreen() {
             <Text style={styles.captionCount}>{caption.length}/120</Text>
           </View>
 
-          {/* Friend */}
+          {/* Challenge type */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>SEND TO</Text>
-            <TouchableOpacity
-              style={styles.fieldRow}
-              onPress={() => setShowFriendPicker(true)}
-              activeOpacity={0.8}
-            >
-              {selectedFriend ? (
-                <View style={styles.selectedFriend}>
-                  <View style={styles.selectedFriendAvatar}>
-                    <Text style={styles.selectedFriendAvatarText}>
-                      {(selectedFriend.display_name?.[0] ?? '?').toUpperCase()}
-                    </Text>
-                  </View>
-                  <Text style={styles.selectedFriendName}>{selectedFriend.display_name}</Text>
-                </View>
-              ) : (
-                <Text style={styles.fieldRowPlaceholder}>Choose a friend...</Text>
-              )}
-              <Text style={styles.fieldRowChevron}>›</Text>
-            </TouchableOpacity>
+            <Text style={styles.sectionLabel}>CHALLENGE TYPE</Text>
+            <View style={styles.challengeRow}>
+              {CHALLENGE_OPTIONS.map((opt) => (
+                <TouchableOpacity
+                  key={opt.type}
+                  style={[styles.challengeOption, challengeType === opt.type && styles.challengeOptionActive]}
+                  onPress={() => setChallengeType(opt.type)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.challengeOptionIcon}>{opt.icon}</Text>
+                  <Text style={[styles.challengeOptionLabel, challengeType === opt.type && styles.challengeOptionLabelActive]}>
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
-          {/* Send button */}
+          {/* Date slider — only for date/both */}
+          {(challengeType === 'date' || challengeType === 'both') && (
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>ACTUAL DATE TAKEN</Text>
+              <DateSlider
+                value={actualDate}
+                onChange={(d) => setActualDate(localMidnight(d))}
+                maximumDate={new Date()}
+              />
+            </View>
+          )}
+
+          {/* Location hint — only for location/both */}
+          {(challengeType === 'location' || challengeType === 'both') && (
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>
+                WHERE WAS THIS TAKEN?  <Text style={styles.requiredTag}>ANSWER</Text>
+              </Text>
+              <TextInput
+                style={styles.captionInput}
+                placeholder="e.g. Eiffel Tower, Paris"
+                placeholderTextColor={C.text3}
+                value={locationHint}
+                onChangeText={setLocationHint}
+                maxLength={80}
+                selectionColor={C.primary}
+              />
+              <Text style={styles.captionCount}>{locationHint.length}/80</Text>
+            </View>
+          )}
+
+          {/* Post button */}
           <TouchableOpacity
-            style={[styles.sendBtn, !canUpload && styles.sendBtnDisabled]}
-            onPress={upload}
-            disabled={!canUpload}
+            style={[styles.postBtn, !canPost && styles.postBtnDisabled]}
+            onPress={post}
+            disabled={!canPost}
             activeOpacity={0.85}
           >
             {uploading ? (
               <ActivityIndicator color={C.white} />
             ) : (
-              <Text style={styles.sendBtnText}>Send Challenge</Text>
+              <Text style={styles.postBtnText}>Post to Feed</Text>
             )}
           </TouchableOpacity>
 
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Friend picker modal */}
-      <Modal visible={showFriendPicker} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Choose a Friend</Text>
-            <TouchableOpacity
-              style={styles.modalDoneBtn}
-              onPress={() => setShowFriendPicker(false)}
-            >
-              <Text style={styles.modalDoneText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={friends}
-            keyExtractor={(item, index) => item.id ?? String(index)}
-            contentContainerStyle={styles.modalList}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.friendRow, selectedFriend?.id === item.id && styles.friendRowSelected]}
-                onPress={() => { setSelectedFriend(item); setShowFriendPicker(false); }}
-                activeOpacity={0.8}
-              >
-                <View style={styles.friendAvatar}>
-                  <Text style={styles.friendAvatarText}>
-                    {(item.display_name?.[0] ?? '?').toUpperCase()}
-                  </Text>
-                </View>
-                <Text style={styles.friendName}>{item.display_name}</Text>
-                {selectedFriend?.id === item.id && (
-                  <View style={styles.checkmark}>
-                    <Text style={styles.checkmarkText}>✓</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={
-              <View style={styles.modalEmpty}>
-                <Text style={styles.modalEmptyText}>No friends yet</Text>
-                <Text style={styles.modalEmptySub}>Add some friends first!</Text>
-              </View>
-            }
-          />
-        </SafeAreaView>
-      </Modal>
 
       <TabBar />
     </SafeAreaView>
@@ -405,350 +412,107 @@ const CORNER_SIZE = 20;
 const CORNER_WIDTH = 3;
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.bg,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    paddingTop: 8,
-    gap: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
+  root: { flex: 1, backgroundColor: C.bg },
+  content: { paddingHorizontal: 20, paddingBottom: 24, paddingTop: 8, gap: 20 },
+
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  title: { fontSize: 28, fontWeight: '800', color: C.text, letterSpacing: -0.3 },
+  subtitle: { fontSize: 14, color: C.text2 },
+
   discardBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: R.full,
-    backgroundColor: C.surface2,
-    marginTop: 4,
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: R.full, backgroundColor: C.surface2, marginTop: 4,
   },
-  discardBtnText: {
-    fontSize: 13,
-    color: C.error,
-    fontWeight: '600',
+  discardBtnText: { fontSize: 13, color: C.error, fontWeight: '600' },
+
+  momentToggle: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: C.surface, borderRadius: R.md, padding: 14,
+    borderWidth: 1, borderColor: C.border,
   },
+  momentToggleActive: {
+    backgroundColor: C.primaryMuted,
+    borderColor: 'rgba(255,95,31,0.4)',
+  },
+  momentToggleIcon: { fontSize: 22 },
+  momentToggleLabel: { fontSize: 14, fontWeight: '700', color: C.text2 },
+  momentToggleLabelActive: { color: C.primary },
+  momentToggleSub: { fontSize: 11, color: C.text3, marginTop: 2 },
+  momentDot: {
+    width: 12, height: 12, borderRadius: 6,
+    backgroundColor: C.surface3,
+  },
+  momentDotActive: { backgroundColor: C.primary },
+
   draftBanner: {
     backgroundColor: 'rgba(50,215,75,0.12)',
-    borderRadius: R.md,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignSelf: 'flex-start',
-    borderWidth: 0.5,
-    borderColor: 'rgba(50,215,75,0.3)',
+    borderRadius: R.md, paddingHorizontal: 14, paddingVertical: 8,
+    alignSelf: 'flex-start', borderWidth: 0.5, borderColor: 'rgba(50,215,75,0.3)',
   },
-  draftBannerText: {
-    fontSize: 12,
-    color: C.success,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: C.text,
-    letterSpacing: -0.3,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: C.text2,
-  },
+  draftBannerText: { fontSize: 12, color: C.success, fontWeight: '600' },
+
   photoPicker: {
-    height: 220,
-    borderRadius: R.xl,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    position: 'relative',
+    height: 240, borderRadius: R.xl, backgroundColor: C.surface,
+    borderWidth: 1, borderColor: C.border, borderStyle: 'dashed',
+    justifyContent: 'center', alignItems: 'center', overflow: 'hidden', position: 'relative',
   },
-  photoPickerFilled: {
-    borderStyle: 'solid',
-    borderColor: 'transparent',
-  },
-  preview: {
-    width: '100%',
-    height: '100%',
-  },
+  photoPickerFilled: { borderStyle: 'solid', borderColor: 'transparent' },
+  preview: { width: '100%', height: '100%' },
   changeOverlay: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: R.full,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    position: 'absolute', bottom: 12, right: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: R.full,
+    paddingHorizontal: 12, paddingVertical: 6,
   },
-  changeText: {
-    color: C.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  corner: {
-    position: 'absolute',
-    width: CORNER_SIZE,
-    height: CORNER_SIZE,
-    borderColor: C.primary,
-  },
-  cornerTL: {
-    top: 16,
-    left: 16,
-    borderTopWidth: CORNER_WIDTH,
-    borderLeftWidth: CORNER_WIDTH,
-    borderTopLeftRadius: 4,
-  },
-  cornerTR: {
-    top: 16,
-    right: 16,
-    borderTopWidth: CORNER_WIDTH,
-    borderRightWidth: CORNER_WIDTH,
-    borderTopRightRadius: 4,
-  },
-  cornerBL: {
-    bottom: 16,
-    left: 16,
-    borderBottomWidth: CORNER_WIDTH,
-    borderLeftWidth: CORNER_WIDTH,
-    borderBottomLeftRadius: 4,
-  },
-  cornerBR: {
-    bottom: 16,
-    right: 16,
-    borderBottomWidth: CORNER_WIDTH,
-    borderRightWidth: CORNER_WIDTH,
-    borderBottomRightRadius: 4,
-  },
-  photoPickerCenter: {
-    alignItems: 'center',
-    gap: 10,
-  },
+  changeText: { color: C.white, fontSize: 12, fontWeight: '600' },
+
+  corner: { position: 'absolute', width: CORNER_SIZE, height: CORNER_SIZE, borderColor: C.primary },
+  cornerTL: { top: 16, left: 16, borderTopWidth: CORNER_WIDTH, borderLeftWidth: CORNER_WIDTH, borderTopLeftRadius: 4 },
+  cornerTR: { top: 16, right: 16, borderTopWidth: CORNER_WIDTH, borderRightWidth: CORNER_WIDTH, borderTopRightRadius: 4 },
+  cornerBL: { bottom: 16, left: 16, borderBottomWidth: CORNER_WIDTH, borderLeftWidth: CORNER_WIDTH, borderBottomLeftRadius: 4 },
+  cornerBR: { bottom: 16, right: 16, borderBottomWidth: CORNER_WIDTH, borderRightWidth: CORNER_WIDTH, borderBottomRightRadius: 4 },
+
+  photoPickerCenter: { alignItems: 'center', gap: 10 },
   snapIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: C.primaryMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,95,31,0.3)',
+    width: 52, height: 52, borderRadius: 26, backgroundColor: C.primaryMuted,
+    justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,95,31,0.3)',
   },
-  snapIconInner: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2.5,
-    borderColor: C.primary,
-  },
-  photoPickerText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: C.text2,
-  },
-  photoPickerSub: {
-    fontSize: 12,
-    color: C.text3,
-  },
-  section: {
-    gap: 8,
-  },
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: C.text3,
-    letterSpacing: 1.5,
-  },
-  optionalTag: {
-    color: C.text3,
-    fontSize: 9,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-  fieldRow: {
-    backgroundColor: C.surface,
-    borderRadius: R.md,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 0.5,
-    borderColor: C.border,
-  },
-  fieldRowHint: {
-    fontSize: 11,
-    color: C.text3,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  fieldRowValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: C.text,
-  },
-  fieldRowPlaceholder: {
-    fontSize: 15,
-    color: C.text3,
-  },
-  fieldRowChevron: {
-    fontSize: 20,
-    color: C.text3,
-    lineHeight: 22,
-  },
+  snapIconInner: { width: 22, height: 22, borderRadius: 11, borderWidth: 2.5, borderColor: C.primary },
+  photoPickerText: { fontSize: 15, fontWeight: '600', color: C.text2 },
+  photoPickerSub: { fontSize: 12, color: C.text3 },
+
+  section: { gap: 8 },
+  sectionLabel: { fontSize: 10, fontWeight: '800', color: C.text3, letterSpacing: 1.5 },
+  optionalTag: { color: C.text3, fontSize: 9, fontWeight: '500', letterSpacing: 0.5 },
+  requiredTag: { color: C.primary, fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
+
   captionInput: {
-    backgroundColor: C.surface,
-    borderRadius: R.md,
-    padding: 16,
-    fontSize: 15,
-    color: C.text,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    borderWidth: 0.5,
-    borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: R.md, padding: 16,
+    fontSize: 15, color: C.text, minHeight: 60, textAlignVertical: 'top',
+    borderWidth: 0.5, borderColor: C.border,
   },
-  captionCount: {
-    fontSize: 11,
-    color: C.text3,
-    textAlign: 'right',
+  captionCount: { fontSize: 11, color: C.text3, textAlign: 'right' },
+
+  challengeRow: { flexDirection: 'row', gap: 8 },
+  challengeOption: {
+    flex: 1, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 6,
+    borderRadius: R.md, backgroundColor: C.surface,
+    borderWidth: 0.5, borderColor: C.border, gap: 4,
   },
-  selectedFriend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  selectedFriendAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: C.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  selectedFriendAvatarText: {
-    color: C.white,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  selectedFriendName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: C.text,
-  },
-  sendBtn: {
-    backgroundColor: C.primary,
-    borderRadius: R.lg,
-    paddingVertical: 17,
-    alignItems: 'center',
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
-    marginTop: 4,
-  },
-  sendBtnDisabled: {
-    opacity: 0.35,
-  },
-  sendBtnText: {
-    color: C.white,
-    fontWeight: '800',
-    fontSize: 17,
-    letterSpacing: 0.2,
-  },
-  modal: {
-    flex: 1,
-    backgroundColor: C.bg,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: C.border,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: C.text,
-  },
-  modalDoneBtn: {
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-  },
-  modalDoneText: {
-    color: C.primary,
-    fontWeight: '700',
-    fontSize: 16,
-  },
-  modalList: {
-    padding: 12,
-    gap: 8,
-  },
-  friendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: R.md,
-    backgroundColor: C.surface,
-    borderWidth: 0.5,
-    borderColor: C.border,
-  },
-  friendRowSelected: {
-    borderColor: C.primary,
+  challengeOptionActive: {
     backgroundColor: C.primaryMuted,
+    borderColor: 'rgba(255,95,31,0.5)',
   },
-  friendAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: C.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  challengeOptionIcon: { fontSize: 18 },
+  challengeOptionLabel: { fontSize: 11, fontWeight: '600', color: C.text3, textAlign: 'center' },
+  challengeOptionLabelActive: { color: C.primary },
+
+  postBtn: {
+    backgroundColor: C.primary, borderRadius: R.lg, paddingVertical: 17,
+    alignItems: 'center', shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10,
+    elevation: 6, marginTop: 4,
   },
-  friendAvatarText: {
-    color: C.white,
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  friendName: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-    color: C.text,
-  },
-  checkmark: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: C.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkmarkText: {
-    color: C.white,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  modalEmpty: {
-    alignItems: 'center',
-    marginTop: 60,
-    gap: 8,
-  },
-  modalEmptyText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: C.text2,
-  },
-  modalEmptySub: {
-    fontSize: 14,
-    color: C.text3,
-  },
+  postBtnDisabled: { opacity: 0.35 },
+  postBtnText: { color: C.white, fontWeight: '800', fontSize: 17, letterSpacing: 0.2 },
 });
