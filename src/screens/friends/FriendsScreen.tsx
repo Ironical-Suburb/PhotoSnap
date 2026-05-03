@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabase';
 import type { AppStackParamList } from '../../navigation/types';
 import type { User } from '../../types';
 import TabBar from '../../components/TabBar';
+import { Ionicons } from '@expo/vector-icons';
 import { C, R } from '../../theme';
 
 type FriendRow = {
@@ -147,14 +148,24 @@ export default function FriendsScreen() {
               </View>
               <View style={styles.info}>
                 <Text style={styles.name}>{item.other_user.display_name}</Text>
-                <Text style={styles.hint}>View head-to-head stats →</Text>
+                <Text style={styles.hint}>Tap to view stats</Text>
               </View>
+              <TouchableOpacity
+                style={styles.chatBtn}
+                onPress={() => navigation.navigate('Chat', {
+                  friendId: item.other_user.id,
+                  friendName: item.other_user.display_name,
+                })}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="chatbubble-outline" size={18} color={C.primary} />
+              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.removeBtn}
                 onPress={() => removeFriend(item.id, item.other_user.display_name)}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
-                <Text style={styles.removeBtnText}>✕</Text>
+                <Ionicons name="close" size={14} color={C.text3} />
               </TouchableOpacity>
             </TouchableOpacity>
           )}
@@ -289,6 +300,14 @@ const styles = StyleSheet.create({
     color: C.text3,
     marginTop: 2,
   },
+  chatBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   removeBtn: {
     width: 28,
     height: 28,
@@ -296,11 +315,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.surface2,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  removeBtnText: {
-    fontSize: 11,
-    color: C.text3,
-    fontWeight: '700',
   },
   empty: {
     alignItems: 'center',

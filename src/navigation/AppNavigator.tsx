@@ -12,6 +12,7 @@ import FriendsScreen from '../screens/friends/FriendsScreen';
 import FriendSearchScreen from '../screens/friends/FriendSearchScreen';
 import FriendRequestsScreen from '../screens/friends/FriendRequestsScreen';
 import FriendStatsScreen from '../screens/friends/FriendStatsScreen';
+import ChatScreen from '../screens/chat/ChatScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import type { AppStackParamList } from './types';
 import { C } from '../theme';
@@ -45,6 +46,11 @@ export default function AppNavigator() {
         name="FriendStats"
         component={FriendStatsScreen}
         options={({ route }) => ({ ...darkHeader, title: `vs ${route.params.friendName}` })}
+      />
+      <Stack.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>

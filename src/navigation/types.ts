@@ -11,6 +11,7 @@ export type AppStackParamList = {
   FriendSearch: undefined;
   FriendRequests: undefined;
   FriendStats: { friendId: string; friendName: string };
+  Chat: { friendId: string; friendName: string };
   Profile: undefined;
 };
 
