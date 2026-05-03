@@ -1,4 +1,5 @@
 export type AppStackParamList = {
+  Feed: undefined;
   Home: undefined;
   Challenges: undefined;
   Guess: { roundId: string };
@@ -13,6 +14,9 @@ export type AppStackParamList = {
   FriendStats: { friendId: string; friendName: string };
   Chat: { friendId: string; friendName: string };
   Profile: undefined;
+  League: undefined;
+  Duels: undefined;
+  Duel: { duelId: string };
 };
 
 export type AuthStackParamList = {

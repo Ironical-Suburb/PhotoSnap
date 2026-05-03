@@ -28,7 +28,7 @@ export default function HomeScreen() {
 
     const [{ count }, { data: profile }] = await Promise.all([
       supabase.from('rounds').select('id', { count: 'exact', head: true })
-        .eq('guesser_id', user.id).is('guess_date', null),
+        .eq('guesser_id', user.id).is('resolved_at', null),
       supabase.from('users').select('display_name').eq('id', user.id).single(),
     ]);
 
@@ -109,6 +109,8 @@ export default function HomeScreen() {
           {([
             { label: 'Sent', sub: 'Challenges', screen: 'SentChallenges' as const, icon: 'arrow-up-circle-outline' },
             { label: 'History', sub: 'My rounds', screen: 'History' as const, icon: 'time-outline' },
+            { label: 'League', sub: 'Accuracy tiers', screen: 'League' as const, icon: 'ribbon-outline' },
+            { label: 'Duels', sub: 'Head-to-head', screen: 'Duels' as const, icon: 'flash-outline' },
             { label: 'Scores', sub: 'Leaderboard', screen: 'Leaderboard' as const, icon: 'trophy-outline' },
             { label: 'Drafts', sub: 'Saved posts', screen: 'Drafts' as const, icon: 'document-text-outline' },
           ] as const).map(({ label, sub, screen, icon }) => (

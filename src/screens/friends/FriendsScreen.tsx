@@ -83,6 +83,18 @@ export default function FriendsScreen() {
     setLoading(false);
   }
 
+  async function startDuel(opponentId: string) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('duels')
+      .insert({ challenger_id: user.id, opponent_id: opponentId })
+      .select('id')
+      .single();
+    if (error || !data) { Alert.alert('Error', 'Could not start duel'); return; }
+    navigation.navigate('Duel', { duelId: data.id });
+  }
+
   async function removeFriend(friendshipId: string, name: string) {
     Alert.alert('Remove Friend', `Remove ${name} from your friends?`, [
       { text: 'Cancel', style: 'cancel' },
@@ -159,6 +171,13 @@ export default function FriendsScreen() {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Ionicons name="chatbubble-outline" size={18} color={C.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.duelBtn}
+                onPress={() => startDuel(item.other_user.id)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.duelBtnText}>⚔️</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.removeBtn}
@@ -307,6 +326,17 @@ const styles = StyleSheet.create({
     backgroundColor: C.primaryMuted,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  duelBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.surface2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  duelBtnText: {
+    fontSize: 16,
   },
   removeBtn: {
     width: 28,
