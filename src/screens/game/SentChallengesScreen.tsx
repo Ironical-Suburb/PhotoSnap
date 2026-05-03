@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, FlatList,
+  View, Text, FlatList, TouchableOpacity, Modal,
   StyleSheet, ActivityIndicator, StatusBar,
 } from 'react-native';
 import EncryptedImage from '../../components/EncryptedImage';
@@ -23,6 +23,7 @@ type SentPhoto = {
 export default function SentChallengesScreen() {
   const [photos, setPhotos] = useState<SentPhoto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [zoomedUri, setZoomedUri] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,9 +86,9 @@ export default function SentChallengesScreen() {
             const guessed = item.round?.guess_date != null;
             return (
               <View style={styles.card}>
-                <View style={styles.thumbWrap}>
+                <TouchableOpacity style={styles.thumbWrap} onPress={() => setZoomedUri(item.storage_url)} activeOpacity={0.85}>
                   <EncryptedImage uri={item.storage_url} style={styles.thumb} />
-                </View>
+                </TouchableOpacity>
                 <View style={styles.cardInfo}>
                   <View style={styles.cardTop}>
                     <Text style={styles.cardTo}>
@@ -122,6 +123,17 @@ export default function SentChallengesScreen() {
           }
         />
       )}
+
+      <Modal visible={!!zoomedUri} animationType="fade" statusBarTranslucent>
+        <View style={styles.zoomModal}>
+          <TouchableOpacity style={styles.zoomClose} onPress={() => setZoomedUri(null)}>
+            <Text style={styles.zoomCloseText}>✕</Text>
+          </TouchableOpacity>
+          {zoomedUri && (
+            <EncryptedImage uri={zoomedUri} style={styles.zoomImage} resizeMode="contain" />
+          )}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -233,6 +245,32 @@ const styles = StyleSheet.create({
     color: C.text3,
     fontStyle: 'italic',
     marginTop: 4,
+  },
+  zoomModal: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+  },
+  zoomClose: {
+    position: 'absolute',
+    top: 48,
+    right: 20,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  zoomCloseText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  zoomImage: {
+    width: '100%',
+    height: '100%',
   },
   empty: {
     alignItems: 'center',

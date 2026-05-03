@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, Image, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Platform, Modal, StatusBar, ScrollView,
+  StyleSheet, ActivityIndicator, Modal, StatusBar, ScrollView,
 } from 'react-native';
 import EncryptedImage from '../../components/EncryptedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +25,6 @@ export default function GuessScreen() {
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [round, setRound] = useState<Round | null>(null);
   const [guessDate, setGuessDate] = useState(() => localMidnight());
-  const [showPicker, setShowPicker] = useState(false);
   const [result, setResult] = useState<{ points: number; label: string; daysOff: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoZoomed, setPhotoZoomed] = useState(false);
@@ -105,7 +104,7 @@ export default function GuessScreen() {
           style={styles.polaroidWrap}
         >
           <View style={styles.polaroid}>
-            <EncryptedImage uri={photo.storage_url} style={styles.photo} resizeMode="cover" />
+            <EncryptedImage uri={photo.storage_url} style={styles.photo} resizeMode="contain" />
           </View>
           <Text style={styles.zoomHint}>Tap to enlarge</Text>
         </TouchableOpacity>
@@ -141,31 +140,18 @@ export default function GuessScreen() {
           <View style={styles.guessCard}>
             <Text style={styles.guessLabel}>WHEN WAS THIS TAKEN?</Text>
 
-            <TouchableOpacity
+            <Text style={styles.datePickerHint}>Your guess</Text>
+            <DateTimePicker
+              value={guessDate}
+              mode="date"
+              display="spinner"
+              maximumDate={new Date()}
+              textColor={C.text}
               style={styles.datePicker}
-              onPress={() => setShowPicker(true)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.datePickerLeft}>
-                <Text style={styles.datePickerHint}>Your guess</Text>
-                <Text style={styles.datePickerValue}>
-                  {guessDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </Text>
-              </View>
-              <Text style={styles.datePickerEdit}>Change ›</Text>
-            </TouchableOpacity>
-
-            {showPicker && (
-              <DateTimePicker
-                value={guessDate}
-                mode="date"
-                maximumDate={new Date()}
-                onChange={(_, date) => {
-                  setShowPicker(Platform.OS === 'ios');
-                  if (date) setGuessDate(localMidnight(date));
-                }}
-              />
-            )}
+              onChange={(_, date) => {
+                if (date) setGuessDate(localMidnight(date));
+              }}
+            />
 
             <TouchableOpacity style={styles.submitBtn} onPress={submitGuess} activeOpacity={0.85}>
               <Text style={styles.submitBtnText}>Submit Guess</Text>
@@ -236,7 +222,7 @@ const styles = StyleSheet.create({
   },
   photo: {
     width: '100%',
-    aspectRatio: 4 / 3,
+    aspectRatio: 1,
     borderRadius: 2,
   },
   zoomHint: {
@@ -282,31 +268,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   datePicker: {
-    backgroundColor: C.surface2,
-    borderRadius: R.md,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  datePickerLeft: {
-    gap: 3,
+    width: '100%',
   },
   datePickerHint: {
-    fontSize: 11,
+    fontSize: 10,
     color: C.text3,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  datePickerValue: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: C.text,
-  },
-  datePickerEdit: {
-    fontSize: 13,
-    color: C.primary,
-    fontWeight: '600',
+    fontWeight: '800',
+    letterSpacing: 1.5,
   },
   submitBtn: {
     backgroundColor: C.primary,

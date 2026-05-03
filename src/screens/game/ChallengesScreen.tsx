@@ -21,9 +21,17 @@ type PendingRound = {
   };
 };
 
+type UnreadConvo = {
+  senderId: string;
+  senderName: string;
+  preview: string;
+  count: number;
+};
+
 export default function ChallengesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const [rounds, setRounds] = useState<PendingRound[]>([]);
+  const [unreadDMs, setUnreadDMs] = useState<UnreadConvo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -37,14 +45,43 @@ export default function ChallengesScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
-      .from('rounds')
-      .select('id, photo_id, created_at, photos(storage_url, users!photos_sender_id_fkey(display_name))')
-      .eq('guesser_id', user.id)
-      .is('guess_date', null)
-      .order('created_at', { ascending: true });
+    const [{ data: roundData }, { data: msgs }] = await Promise.all([
+      supabase
+        .from('rounds')
+        .select('id, photo_id, created_at, photos(storage_url, users!photos_sender_id_fkey(display_name))')
+        .eq('guesser_id', user.id)
+        .is('guess_date', null)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('messages')
+        .select('sender_id, content')
+        .eq('receiver_id', user.id)
+        .is('read_at', null)
+        .order('created_at', { ascending: false }),
+    ]);
 
-    if (data) setRounds(data as any);
+    if (roundData) setRounds(roundData as any);
+
+    if (msgs?.length) {
+      const byS = new Map<string, { preview: string; count: number }>();
+      for (const m of msgs) {
+        if (!byS.has(m.sender_id)) byS.set(m.sender_id, { preview: m.content, count: 1 });
+        else byS.get(m.sender_id)!.count++;
+      }
+      const senderIds = [...byS.keys()];
+      const { data: senders } = await supabase
+        .from('users').select('id, display_name').in('id', senderIds);
+      const nameMap = new Map((senders ?? []).map((u: any) => [u.id, u.display_name]));
+      setUnreadDMs(senderIds.map((id) => ({
+        senderId: id,
+        senderName: nameMap.get(id) ?? 'Unknown',
+        preview: byS.get(id)!.preview,
+        count: byS.get(id)!.count,
+      })));
+    } else {
+      setUnreadDMs([]);
+    }
+
     setLoading(false);
   }
 
@@ -74,7 +111,34 @@ export default function ChallengesScreen() {
         <FlatList
           data={rounds}
           keyExtractor={(item, index) => item.id ?? String(index)}
-          contentContainerStyle={rounds.length === 0 ? styles.emptyContainer : styles.listContent}
+          contentContainerStyle={rounds.length === 0 && unreadDMs.length === 0 ? styles.emptyContainer : styles.listContent}
+          ListHeaderComponent={
+            unreadDMs.length > 0 ? (
+              <View style={styles.dmSection}>
+                <Text style={styles.dmSectionLabel}>MESSAGES</Text>
+                {unreadDMs.map((convo) => (
+                  <TouchableOpacity
+                    key={convo.senderId}
+                    style={styles.dmCard}
+                    onPress={() => navigation.navigate('Chat', { friendId: convo.senderId, friendName: convo.senderName })}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.dmAvatar}>
+                      <Text style={styles.dmAvatarText}>{(convo.senderName[0] ?? '?').toUpperCase()}</Text>
+                    </View>
+                    <View style={styles.dmInfo}>
+                      <Text style={styles.dmName}>{convo.senderName}</Text>
+                      <Text style={styles.dmPreview} numberOfLines={1}>{convo.preview}</Text>
+                    </View>
+                    <View style={styles.dmBadge}>
+                      <Text style={styles.dmBadgeText}>{convo.count}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+                {rounds.length > 0 && <Text style={[styles.dmSectionLabel, { marginTop: 16 }]}>CHALLENGES</Text>}
+              </View>
+            ) : null
+          }
           renderItem={({ item, index }) => (
             <TouchableOpacity
               style={styles.card}
@@ -98,15 +162,17 @@ export default function ChallengesScreen() {
             </TouchableOpacity>
           )}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <View style={styles.emptyIcon}>
-                <View style={styles.emptyIconInner} />
+            unreadDMs.length === 0 ? (
+              <View style={styles.empty}>
+                <View style={styles.emptyIcon}>
+                  <View style={styles.emptyIconInner} />
+                </View>
+                <Text style={styles.emptyTitle}>All caught up!</Text>
+                <Text style={styles.emptySub}>
+                  No challenges waiting.{'\n'}Ask a friend to send you one.
+                </Text>
               </View>
-              <Text style={styles.emptyTitle}>All caught up!</Text>
-              <Text style={styles.emptySub}>
-                No challenges waiting.{'\n'}Ask a friend to send you one.
-              </Text>
-            </View>
+            ) : null
           }
         />
       )}
@@ -245,5 +311,67 @@ const styles = StyleSheet.create({
     color: C.text3,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  dmSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+    gap: 8,
+  },
+  dmSectionLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: C.text3,
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  dmCard: {
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: C.border,
+    gap: 12,
+  },
+  dmAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: C.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dmAvatarText: {
+    color: C.white,
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  dmInfo: {
+    flex: 1,
+    gap: 3,
+  },
+  dmName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: C.text,
+  },
+  dmPreview: {
+    fontSize: 13,
+    color: C.text2,
+  },
+  dmBadge: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: C.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  dmBadgeText: {
+    color: C.white,
+    fontSize: 11,
+    fontWeight: '800',
   },
 });

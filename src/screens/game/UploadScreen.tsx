@@ -62,7 +62,6 @@ export default function UploadScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [actualDate, setActualDate] = useState(() => localMidnight());
   const [caption, setCaption] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [friends, setFriends] = useState<(User & { push_token?: string })[]>([]);
   const [selectedFriend, setSelectedFriend] = useState<(User & { push_token?: string }) | null>(null);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -288,31 +287,16 @@ export default function UploadScreen() {
           {/* Date */}
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>ACTUAL DATE TAKEN</Text>
-            <TouchableOpacity
-              style={styles.fieldRow}
-              onPress={() => setShowDatePicker(true)}
-              activeOpacity={0.8}
-            >
-              <View>
-                <Text style={styles.fieldRowHint}>Date</Text>
-                <Text style={styles.fieldRowValue}>
-                  {actualDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </Text>
-              </View>
-              <Text style={styles.fieldRowChevron}>›</Text>
-            </TouchableOpacity>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={actualDate}
-                mode="date"
-                maximumDate={new Date()}
-                onChange={(_, date) => {
-                  setShowDatePicker(Platform.OS === 'ios');
-                  if (date) setActualDate(localMidnight(date));
-                }}
-              />
-            )}
+            <DateTimePicker
+              value={actualDate}
+              mode="date"
+              display="spinner"
+              maximumDate={new Date()}
+              style={{ width: '100%' }}
+              onChange={(_, date) => {
+                if (date) setActualDate(localMidnight(date));
+              }}
+            />
           </View>
 
           {/* Caption */}
