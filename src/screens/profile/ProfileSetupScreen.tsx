@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, StatusBar,
+  StyleSheet, Alert, KeyboardAvoidingView, StatusBar,
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { C, R } from '../../theme';
@@ -43,7 +43,7 @@ export default function ProfileSetupScreen({ onComplete }: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
     >
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
       <View style={styles.inner}>

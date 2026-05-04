@@ -1,41 +1,130 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, Image,
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar,
+  StyleSheet, Alert, KeyboardAvoidingView, ScrollView, StatusBar,
 } from 'react-native';
-import * as Linking from 'expo-linking';
 import { supabase } from '../../lib/supabase';
 import { C, R } from '../../theme';
 
-const REDIRECT_URL = Linking.createURL('/');
+type Mode = 'signin' | 'signup' | 'verify';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [otp, setOtp]           = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [mode, setMode]         = useState<Mode>('signin');
 
   async function signIn() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) Alert.alert('Error', error.message);
+    if (error) Alert.alert('Sign-in failed', error.message);
     setLoading(false);
   }
 
   async function signUp() {
+    if (!email || !password) {
+      Alert.alert('Missing fields', 'Please enter your email and password.');
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: REDIRECT_URL },
-    });
-    if (error) Alert.alert('Error', error.message);
-    else Alert.alert('Check your email', 'We sent you a confirmation link. Open it to activate your account.');
+    const { error } = await supabase.auth.signUp({ email, password });
     setLoading(false);
+    if (error) {
+      Alert.alert('Sign-up failed', error.message);
+      return;
+    }
+    // Supabase sends a 6-digit code to the email — show OTP entry screen
+    setMode('verify');
   }
 
+  async function verifyOtp() {
+    if (otp.length !== 6) {
+      Alert.alert('Invalid code', 'Please enter the 6-digit code from your email.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'signup',
+    });
+    setLoading(false);
+    if (error) Alert.alert('Verification failed', error.message);
+    // On success, onAuthStateChange in App.tsx detects the session automatically
+  }
+
+  async function resendCode() {
+    setLoading(true);
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    setLoading(false);
+    if (error) Alert.alert('Error', error.message);
+    else Alert.alert('Code resent', 'Check your email for a new 6-digit code.');
+  }
+
+  // ─── OTP verification screen ────────────────────────────────────────────────
+  if (mode === 'verify') {
+    return (
+      <KeyboardAvoidingView style={styles.root} behavior="padding">
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.hero}>
+            <Image source={require('../../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
+            <Text style={styles.tagline}>Send a photo. Let them guess when.</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Check your email</Text>
+            <Text style={styles.verifySubtitle}>
+              We sent a 6-digit code to{'\n'}
+              <Text style={styles.verifyEmail}>{email}</Text>
+            </Text>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>CONFIRMATION CODE</Text>
+              <TextInput
+                style={[styles.input, styles.otpInput]}
+                placeholder="000000"
+                placeholderTextColor={C.text3}
+                value={otp}
+                onChangeText={(t) => setOtp(t.replace(/\D/g, '').slice(0, 6))}
+                keyboardType="number-pad"
+                maxLength={6}
+                autoFocus
+                selectionColor={C.primary}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.primaryBtn, (loading || otp.length !== 6) && styles.btnDisabled]}
+              onPress={verifyOtp}
+              disabled={loading || otp.length !== 6}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.primaryBtnText}>
+                {loading ? 'Verifying…' : 'Confirm Account'}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.switchRow}>
+              <Text style={styles.switchText}>Didn't get it?</Text>
+              <TouchableOpacity onPress={resendCode} disabled={loading}>
+                <Text style={styles.switchLink}>  Resend code</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.backBtn} onPress={() => { setMode('signup'); setOtp(''); }}>
+              <Text style={styles.backBtnText}>← Back</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ─── Sign-in / Sign-up screen ────────────────────────────────────────────────
   return (
-    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.root} behavior="padding">
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
 
@@ -146,6 +235,17 @@ const styles = StyleSheet.create({
     color: C.text,
     marginBottom: 24,
   },
+  verifySubtitle: {
+    fontSize: 14,
+    color: C.text2,
+    lineHeight: 22,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  verifyEmail: {
+    color: C.text,
+    fontWeight: '600',
+  },
   field: {
     marginBottom: 16,
   },
@@ -165,6 +265,12 @@ const styles = StyleSheet.create({
     color: C.text,
     borderWidth: 0.5,
     borderColor: C.border,
+  },
+  otpInput: {
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: 8,
+    textAlign: 'center',
   },
   primaryBtn: {
     backgroundColor: C.primary,
@@ -201,5 +307,13 @@ const styles = StyleSheet.create({
     color: C.primary,
     fontSize: 14,
     fontWeight: '700',
+  },
+  backBtn: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  backBtnText: {
+    color: C.text3,
+    fontSize: 14,
   },
 });

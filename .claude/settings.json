@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(grep -E \"\\\\.\\(json|js|ts\\)$|babel|jest|metro\")",
+      "Bash(npx jest *)",
+      "Bash(node -e \"const schema = require\\('./node_modules/jest-config/build/ValidConfig'\\); console.log\\(Object.keys\\(schema\\).filter\\(k => k.toLowerCase\\(\\).includes\\('setup'\\)\\)\\)\")",
+      "Bash(node -e \"const c = require\\('./node_modules/jest-config/build/index'\\); console.log\\(Object.keys\\(c\\).slice\\(0,5\\)\\)\")"
+    ]
+  }
+}

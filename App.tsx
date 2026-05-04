@@ -3,7 +3,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as Linking from 'expo-linking';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './src/lib/supabase';
 import { registerForPushNotifications } from './src/lib/notifications';
@@ -31,26 +30,6 @@ export default function App() {
     setAppState(data ? 'ready' : 'needs_profile');
   }, []);
 
-  const handleDeepLink = useCallback(async (url: string) => {
-    // PKCE flow: photosnap://?code=XXX  (Supabase v2 default)
-    const parsed = Linking.parse(url);
-    const code = parsed.queryParams?.code;
-    if (code) {
-      await supabase.auth.exchangeCodeForSession(String(code));
-      return;
-    }
-    // Implicit flow fallback: photosnap://#access_token=XXX&refresh_token=XXX
-    if (url.includes('access_token')) {
-      const fragment = url.split('#')[1] ?? '';
-      const params = new URLSearchParams(fragment);
-      const access_token = params.get('access_token');
-      const refresh_token = params.get('refresh_token');
-      if (access_token && refresh_token) {
-        await supabase.auth.setSession({ access_token, refresh_token });
-      }
-    }
-  }, []);
-
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
@@ -62,19 +41,8 @@ export default function App() {
       checkState(s);
     });
 
-    // Handle deep link when app is already open
-    const linkingSub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
-
-    // Handle deep link when app was opened from a cold start via the link
-    Linking.getInitialURL().then((url) => {
-      if (url) handleDeepLink(url);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      linkingSub.remove();
-    };
-  }, [checkState, handleDeepLink]);
+    return () => { subscription.unsubscribe(); };
+  }, [checkState]);
 
   useEffect(() => {
     if (appState === 'ready' && session) {

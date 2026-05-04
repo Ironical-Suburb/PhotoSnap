@@ -1,0 +1,1157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1777902169850" clover="3.2.0">
+  <project timestamp="1777902169850" name="All files">
+    <metrics statements="1031" coveredstatements="405" conditionals="1061" coveredconditionals="336" methods="303" coveredmethods="98" elements="2395" coveredelements="839" complexity="0" loc="1031" ncloc="1031" packages="10" files="30" classes="30"/>
+    <package name="src">
+      <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="theme.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\theme.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="17" type="stmt"/>
+        <line num="18" count="17" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.components">
+      <metrics statements="71" coveredstatements="38" conditionals="42" coveredconditionals="22" methods="22" coveredmethods="9"/>
+      <file name="DateSlider.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\components\DateSlider.tsx">
+        <metrics statements="40" coveredstatements="8" conditionals="15" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="50" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="74" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="92" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="123" count="0" type="stmt"/>
+        <line num="139" count="1" type="stmt"/>
+        <line num="141" count="1" type="stmt"/>
+      </file>
+      <file name="EncryptedImage.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\components\EncryptedImage.tsx">
+        <metrics statements="16" coveredstatements="16" conditionals="9" coveredconditionals="7" methods="5" coveredmethods="5"/>
+        <line num="16" count="9" type="stmt"/>
+        <line num="17" count="9" type="stmt"/>
+        <line num="19" count="9" type="stmt"/>
+        <line num="20" count="5" type="stmt"/>
+        <line num="21" count="5" type="stmt"/>
+        <line num="22" count="5" type="stmt"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="25" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="26" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="28" count="5" type="stmt"/>
+        <line num="31" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="5" type="stmt"/>
+        <line num="39" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="43" count="3" type="stmt"/>
+        <line num="53" count="3" type="stmt"/>
+      </file>
+      <file name="TabBar.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\components\TabBar.tsx">
+        <metrics statements="15" coveredstatements="14" conditionals="18" coveredconditionals="15" methods="5" coveredmethods="4"/>
+        <line num="9" count="4" type="stmt"/>
+        <line num="18" count="28" type="stmt"/>
+        <line num="19" count="28" type="stmt"/>
+        <line num="20" count="28" type="stmt"/>
+        <line num="22" count="28" type="stmt"/>
+        <line num="23" count="4" type="stmt"/>
+        <line num="28" count="28" type="stmt"/>
+        <line num="32" count="140" type="stmt"/>
+        <line num="33" count="140" type="stmt"/>
+        <line num="35" count="140" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="28" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="50" count="112" type="stmt"/>
+        <line num="54" count="4" type="stmt"/>
+        <line num="78" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.constants">
+      <metrics statements="6" coveredstatements="6" conditionals="10" coveredconditionals="9" methods="1" coveredmethods="1"/>
+      <file name="scoring.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\constants\scoring.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="10" coveredconditionals="9" methods="1" coveredmethods="1"/>
+        <line num="2" count="15" type="stmt"/>
+        <line num="3" count="15" type="stmt"/>
+        <line num="4" count="15" type="stmt"/>
+        <line num="7" count="15" type="stmt"/>
+        <line num="10" count="15" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="15" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.lib">
+      <metrics statements="91" coveredstatements="12" conditionals="25" coveredconditionals="5" methods="17" coveredmethods="2"/>
+      <file name="crypto.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\lib\crypto.ts">
+        <metrics statements="65" coveredstatements="2" conditionals="12" coveredconditionals="0" methods="11" coveredmethods="0"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+        <line num="31" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="84" count="2" type="stmt"/>
+        <line num="88" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="97" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="108" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="111" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+      </file>
+      <file name="dates.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\lib\dates.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="1" coveredconditionals="1" methods="2" coveredmethods="2"/>
+        <line num="2" count="6" type="stmt"/>
+        <line num="3" count="6" type="stmt"/>
+        <line num="4" count="6" type="stmt"/>
+        <line num="5" count="6" type="stmt"/>
+        <line num="9" count="11" type="stmt"/>
+        <line num="10" count="11" type="stmt"/>
+        <line num="11" count="11" type="stmt"/>
+      </file>
+      <file name="notifications.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\lib\notifications.ts">
+        <metrics statements="16" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="17" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+      </file>
+      <file name="supabase.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\lib\supabase.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="4" coveredconditionals="4" methods="0" coveredmethods="0"/>
+        <line num="5" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="6" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="8" count="5" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.screens.auth">
+      <metrics statements="17" coveredstatements="17" conditionals="22" coveredconditionals="19" methods="4" coveredmethods="4"/>
+      <file name="LoginScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\auth\LoginScreen.tsx">
+        <metrics statements="17" coveredstatements="17" conditionals="22" coveredconditionals="19" methods="4" coveredmethods="4"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="13" count="18" type="stmt"/>
+        <line num="14" count="18" type="stmt"/>
+        <line num="15" count="18" type="stmt"/>
+        <line num="16" count="18" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="32" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="37" count="18" type="stmt"/>
+        <line num="98" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="111" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.screens.chat">
+      <metrics statements="42" coveredstatements="0" conditionals="36" coveredconditionals="0" methods="12" coveredmethods="0"/>
+      <file name="ChatScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\chat\ChatScreen.tsx">
+        <metrics statements="42" coveredstatements="0" conditionals="36" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="81" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="102" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="104" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="201" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.screens.friends">
+      <metrics statements="137" coveredstatements="31" conditionals="133" coveredconditionals="14" methods="52" coveredmethods="11"/>
+      <file name="FriendRequestsScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\friends\FriendRequestsScreen.tsx">
+        <metrics statements="27" coveredstatements="0" conditionals="16" coveredconditionals="0" methods="14" coveredmethods="0"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="36" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="76" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+      </file>
+      <file name="FriendSearchScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\friends\FriendSearchScreen.tsx">
+        <metrics statements="34" coveredstatements="0" conditionals="42" coveredconditionals="0" methods="10" coveredmethods="0"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="32" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="43" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="64" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="123" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
+      </file>
+      <file name="FriendStatsScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\friends\FriendStatsScreen.tsx">
+        <metrics statements="31" coveredstatements="0" conditionals="47" coveredconditionals="0" methods="8" coveredmethods="0"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="61" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="63" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="76" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="80" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="86" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="157" count="0" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+      </file>
+      <file name="FriendsScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\friends\FriendsScreen.tsx">
+        <metrics statements="45" coveredstatements="31" conditionals="28" coveredconditionals="14" methods="20" coveredmethods="11"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="25" count="9" type="stmt"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="30" count="8" type="stmt"/>
+        <line num="31" count="8" type="stmt"/>
+        <line num="32" count="8" type="stmt"/>
+        <line num="33" count="8" type="stmt"/>
+        <line num="35" count="8" type="stmt"/>
+        <line num="37" count="4" type="stmt"/>
+        <line num="42" count="4" type="stmt"/>
+        <line num="43" count="4" type="stmt"/>
+        <line num="44" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="46" count="4" type="stmt"/>
+        <line num="59" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="61" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="62" count="3" type="stmt"/>
+        <line num="63" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="65" count="3" type="stmt"/>
+        <line num="70" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="71" count="3" type="stmt"/>
+        <line num="74" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="75" count="3" type="stmt"/>
+        <line num="77" count="3" type="stmt"/>
+        <line num="80" count="1" type="stmt"/>
+        <line num="83" count="4" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="88" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="94" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="110" count="8" type="stmt"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="131" count="1" type="stmt"/>
+        <line num="144" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="148" count="3" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="167" count="0" type="stmt"/>
+        <line num="177" count="0" type="stmt"/>
+        <line num="184" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="211" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.screens.game">
+      <metrics statements="577" coveredstatements="275" conditionals="707" coveredconditionals="246" methods="177" coveredmethods="67"/>
+      <file name="ChallengesScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\ChallengesScreen.tsx">
+        <metrics statements="35" coveredstatements="22" conditionals="38" coveredconditionals="18" methods="12" coveredmethods="6"/>
+        <line num="32" count="10" type="stmt"/>
+        <line num="33" count="10" type="stmt"/>
+        <line num="34" count="10" type="stmt"/>
+        <line num="35" count="10" type="stmt"/>
+        <line num="36" count="10" type="stmt"/>
+        <line num="38" count="10" type="stmt"/>
+        <line num="40" count="5" type="stmt"/>
+        <line num="45" count="5" type="stmt"/>
+        <line num="46" count="5" type="stmt"/>
+        <line num="47" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="48" count="5" type="stmt"/>
+        <line num="50" count="5" type="stmt"/>
+        <line num="65" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="67" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="76" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="84" count="5" type="stmt"/>
+        <line num="87" count="5" type="stmt"/>
+        <line num="90" count="10" type="stmt"/>
+        <line num="92" count="10" type="stmt"/>
+        <line num="115" count="8" type="cond" truecount="1" falsecount="1"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="127" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="155" count="4" type="stmt"/>
+        <line num="157" count="1" type="stmt"/>
+        <line num="197" count="1" type="stmt"/>
+      </file>
+      <file name="DraftsScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\DraftsScreen.tsx">
+        <metrics statements="14" coveredstatements="0" conditionals="14" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+      </file>
+      <file name="DuelScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\DuelScreen.tsx">
+        <metrics statements="75" coveredstatements="0" conditionals="108" coveredconditionals="0" methods="16" coveredmethods="0"/>
+        <line num="38" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="64" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="79" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="95" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="96" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="99" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="100" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="101" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="127" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="133" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="137" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="138" count="0" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="145" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="174" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="175" count="0" type="stmt"/>
+        <line num="180" count="0" type="stmt"/>
+        <line num="182" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="185" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="186" count="0" type="stmt"/>
+        <line num="194" count="0" type="stmt"/>
+        <line num="195" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="196" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="197" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="198" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="199" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="200" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="202" count="0" type="stmt"/>
+        <line num="206" count="0" type="stmt"/>
+        <line num="302" count="0" type="stmt"/>
+        <line num="327" count="0" type="stmt"/>
+        <line num="333" count="0" type="stmt"/>
+        <line num="336" count="0" type="stmt"/>
+        <line num="338" count="0" type="stmt"/>
+        <line num="366" count="0" type="stmt"/>
+      </file>
+      <file name="DuelsScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\DuelsScreen.tsx">
+        <metrics statements="34" coveredstatements="33" conditionals="28" coveredconditionals="24" methods="7" coveredmethods="7"/>
+        <line num="30" count="20" type="stmt"/>
+        <line num="31" count="20" type="cond" truecount="4" falsecount="1"/>
+        <line num="33" count="8" type="cond" truecount="4" falsecount="0"/>
+        <line num="34" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="39" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="40" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="50" count="12" type="stmt"/>
+        <line num="51" count="12" type="stmt"/>
+        <line num="52" count="12" type="stmt"/>
+        <line num="53" count="12" type="stmt"/>
+        <line num="55" count="12" type="stmt"/>
+        <line num="56" count="6" type="stmt"/>
+        <line num="60" count="6" type="stmt"/>
+        <line num="61" count="6" type="stmt"/>
+        <line num="62" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="63" count="6" type="stmt"/>
+        <line num="65" count="6" type="stmt"/>
+        <line num="76" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="77" count="6" type="stmt"/>
+        <line num="80" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="81" count="6" type="stmt"/>
+        <line num="89" count="6" type="stmt"/>
+        <line num="99" count="15" type="stmt"/>
+        <line num="103" count="10" type="stmt"/>
+        <line num="104" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="105" count="10" type="stmt"/>
+        <line num="107" count="10" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="146" count="2" type="stmt"/>
+      </file>
+      <file name="FeedScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\FeedScreen.tsx">
+        <metrics statements="105" coveredstatements="74" conditionals="125" coveredconditionals="65" methods="37" coveredmethods="15"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="29" count="13" type="stmt"/>
+        <line num="30" count="13" type="stmt"/>
+        <line num="31" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="10" type="stmt"/>
+        <line num="34" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="2" type="stmt"/>
+        <line num="36" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="41" count="12" type="stmt"/>
+        <line num="42" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="10" type="stmt"/>
+        <line num="44" count="10" type="stmt"/>
+        <line num="45" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="46" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="51" count="6" type="cond" truecount="3" falsecount="1"/>
+        <line num="52" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="53" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="78" count="6" type="stmt"/>
+        <line num="79" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="80" count="6" type="stmt"/>
+        <line num="81" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="82" count="6" type="stmt"/>
+        <line num="84" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="85" count="6" type="stmt"/>
+        <line num="86" count="24" type="cond" truecount="1" falsecount="1"/>
+        <line num="87" count="24" type="stmt"/>
+        <line num="90" count="6" type="stmt"/>
+        <line num="142" count="24" type="stmt"/>
+        <line num="145" count="0" type="stmt"/>
+        <line num="180" count="0" type="stmt"/>
+        <line num="198" count="14" type="stmt"/>
+        <line num="199" count="14" type="stmt"/>
+        <line num="200" count="14" type="stmt"/>
+        <line num="201" count="14" type="stmt"/>
+        <line num="202" count="14" type="stmt"/>
+        <line num="203" count="14" type="stmt"/>
+        <line num="204" count="14" type="stmt"/>
+        <line num="207" count="14" type="stmt"/>
+        <line num="208" count="14" type="stmt"/>
+        <line num="209" count="7" type="stmt"/>
+        <line num="210" count="7" type="stmt"/>
+        <line num="213" count="14" type="stmt"/>
+        <line num="214" count="7" type="stmt"/>
+        <line num="218" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="219" count="7" type="stmt"/>
+        <line num="221" count="7" type="stmt"/>
+        <line num="222" count="7" type="stmt"/>
+        <line num="223" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="224" count="7" type="stmt"/>
+        <line num="226" count="7" type="stmt"/>
+        <line num="240" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="242" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="243" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="245" count="7" type="stmt"/>
+        <line num="247" count="7" type="stmt"/>
+        <line num="260" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="261" count="1" type="stmt"/>
+        <line num="262" count="1" type="stmt"/>
+        <line num="265" count="6" type="stmt"/>
+        <line num="266" count="6" type="stmt"/>
+        <line num="272" count="6" type="stmt"/>
+        <line num="273" count="0" type="cond" truecount="1" falsecount="1"/>
+        <line num="276" count="6" type="stmt"/>
+        <line num="277" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="280" count="6" type="stmt"/>
+        <line num="285" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="287" count="7" type="stmt"/>
+        <line num="288" count="7" type="stmt"/>
+        <line num="293" count="0" type="stmt"/>
+        <line num="295" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="296" count="0" type="stmt"/>
+        <line num="302" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="303" count="0" type="stmt"/>
+        <line num="304" count="0" type="stmt"/>
+        <line num="306" count="0" type="stmt"/>
+        <line num="309" count="0" type="stmt"/>
+        <line num="313" count="0" type="stmt"/>
+        <line num="315" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="316" count="0" type="stmt"/>
+        <line num="318" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="320" count="0" type="stmt"/>
+        <line num="323" count="0" type="stmt"/>
+        <line num="327" count="0" type="stmt"/>
+        <line num="328" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="331" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="338" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="339" count="7" type="stmt"/>
+        <line num="347" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="351" count="7" type="stmt"/>
+        <line num="360" count="0" type="stmt"/>
+        <line num="376" count="0" type="stmt"/>
+        <line num="388" count="12" type="stmt"/>
+        <line num="390" count="6" type="stmt"/>
+        <line num="398" count="0" type="stmt"/>
+        <line num="407" count="0" type="stmt"/>
+        <line num="421" count="2" type="stmt"/>
+      </file>
+      <file name="GuessScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\GuessScreen.tsx">
+        <metrics statements="61" coveredstatements="49" conditionals="92" coveredconditionals="59" methods="16" coveredmethods="10"/>
+        <line num="22" count="18" type="stmt"/>
+        <line num="23" count="9" type="stmt"/>
+        <line num="24" count="9" type="stmt"/>
+        <line num="25" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="27" count="9" type="stmt"/>
+        <line num="28" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="3" type="cond" truecount="4" falsecount="0"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="34" count="17" type="stmt"/>
+        <line num="35" count="17" type="stmt"/>
+        <line num="36" count="17" type="stmt"/>
+        <line num="38" count="17" type="stmt"/>
+        <line num="39" count="17" type="stmt"/>
+        <line num="40" count="17" type="stmt"/>
+        <line num="41" count="17" type="stmt"/>
+        <line num="42" count="17" type="stmt"/>
+        <line num="43" count="17" type="stmt"/>
+        <line num="44" count="17" type="stmt"/>
+        <line num="46" count="17" type="stmt"/>
+        <line num="49" count="8" type="stmt"/>
+        <line num="50" count="8" type="stmt"/>
+        <line num="56" count="8" type="cond" truecount="1" falsecount="1"/>
+        <line num="57" count="8" type="stmt"/>
+        <line num="58" count="8" type="stmt"/>
+        <line num="59" count="8" type="stmt"/>
+        <line num="61" count="8" type="cond" truecount="4" falsecount="0"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="63" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="64" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="65" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="68" count="1" type="cond" truecount="2" falsecount="2"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="80" count="8" type="stmt"/>
+        <line num="84" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="85" count="1" type="stmt"/>
+        <line num="86" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="87" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="90" count="1" type="stmt"/>
+        <line num="91" count="1" type="stmt"/>
+        <line num="99" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="100" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="101" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="109" count="17" type="cond" truecount="2" falsecount="0"/>
+        <line num="110" count="8" type="stmt"/>
+        <line num="118" count="9" type="cond" truecount="3" falsecount="1"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="126" count="9" type="cond" truecount="1" falsecount="1"/>
+        <line num="127" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="134" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="135" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="137" count="9" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="233" count="0" type="stmt"/>
+        <line num="243" count="2" type="stmt"/>
+      </file>
+      <file name="HistoryScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\HistoryScreen.tsx">
+        <metrics statements="28" coveredstatements="28" conditionals="36" coveredconditionals="23" methods="12" coveredmethods="11"/>
+        <line num="28" count="6" type="stmt"/>
+        <line num="29" count="6" type="stmt"/>
+        <line num="31" count="6" type="stmt"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="38" count="3" type="stmt"/>
+        <line num="39" count="3" type="stmt"/>
+        <line num="40" count="3" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="3" type="stmt"/>
+        <line num="49" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="52" count="2" type="stmt"/>
+        <line num="57" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="58" count="2" type="stmt"/>
+        <line num="63" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="64" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="66" count="2" type="stmt"/>
+        <line num="68" count="2" type="stmt"/>
+        <line num="69" count="2" type="stmt"/>
+        <line num="75" count="2" type="stmt"/>
+        <line num="77" count="2" type="stmt"/>
+        <line num="80" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="82" count="6" type="stmt"/>
+        <line num="104" count="4" type="cond" truecount="1" falsecount="1"/>
+        <line num="108" count="2" type="stmt"/>
+        <line num="114" count="2" type="stmt"/>
+        <line num="115" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="119" count="2" type="stmt"/>
+        <line num="165" count="1" type="stmt"/>
+      </file>
+      <file name="HomeScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\HomeScreen.tsx">
+        <metrics statements="21" coveredstatements="19" conditionals="26" coveredconditionals="19" methods="8" coveredmethods="8"/>
+        <line num="15" count="14" type="stmt"/>
+        <line num="16" count="14" type="stmt"/>
+        <line num="17" count="14" type="stmt"/>
+        <line num="19" count="14" type="stmt"/>
+        <line num="21" count="7" type="stmt"/>
+        <line num="26" count="7" type="stmt"/>
+        <line num="27" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="29" count="7" type="stmt"/>
+        <line num="35" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="36" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="39" count="14" type="stmt"/>
+        <line num="40" count="14" type="stmt"/>
+        <line num="41" count="14" type="cond" truecount="1" falsecount="1"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="46" count="14" type="stmt"/>
+        <line num="63" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="117" count="84" type="stmt"/>
+        <line num="120" count="2" type="stmt"/>
+        <line num="137" count="1" type="stmt"/>
+      </file>
+      <file name="LeaderboardScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\LeaderboardScreen.tsx">
+        <metrics statements="17" coveredstatements="0" conditionals="34" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="28" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+      </file>
+      <file name="LeagueScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\LeagueScreen.tsx">
+        <metrics statements="54" coveredstatements="50" conditionals="67" coveredconditionals="38" methods="12" coveredmethods="10"/>
+        <line num="13" count="3" type="stmt"/>
+        <line num="22" count="24" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="15" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="3" type="stmt"/>
+        <line num="30" count="11" type="stmt"/>
+        <line num="31" count="11" type="stmt"/>
+        <line num="32" count="11" type="cond" truecount="1" falsecount="1"/>
+        <line num="33" count="11" type="stmt"/>
+        <line num="34" count="11" type="stmt"/>
+        <line num="47" count="14" type="stmt"/>
+        <line num="48" count="14" type="stmt"/>
+        <line num="49" count="14" type="stmt"/>
+        <line num="50" count="14" type="stmt"/>
+        <line num="52" count="14" type="stmt"/>
+        <line num="53" count="7" type="stmt"/>
+        <line num="57" count="7" type="stmt"/>
+        <line num="58" count="7" type="stmt"/>
+        <line num="59" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="61" count="7" type="stmt"/>
+        <line num="62" count="7" type="stmt"/>
+        <line num="63" count="7" type="stmt"/>
+        <line num="65" count="7" type="stmt"/>
+        <line num="71" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="72" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="74" count="7" type="stmt"/>
+        <line num="76" count="7" type="stmt"/>
+        <line num="89" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="91" count="7" type="stmt"/>
+        <line num="92" count="7" type="stmt"/>
+        <line num="93" count="7" type="stmt"/>
+        <line num="95" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="96" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="97" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="102" count="7" type="stmt"/>
+        <line num="103" count="7" type="stmt"/>
+        <line num="104" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="105" count="7" type="stmt"/>
+        <line num="115" count="7" type="cond" truecount="0" falsecount="2"/>
+        <line num="116" count="7" type="stmt"/>
+        <line num="117" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="118" count="7" type="stmt"/>
+        <line num="121" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="122" count="7" type="stmt"/>
+        <line num="130" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="131" count="7" type="stmt"/>
+        <line num="132" count="7" type="cond" truecount="3" falsecount="1"/>
+        <line num="134" count="7" type="stmt"/>
+        <line num="176" count="7" type="stmt"/>
+        <line num="177" count="7" type="stmt"/>
+        <line num="204" count="28" type="stmt"/>
+        <line num="221" count="3" type="stmt"/>
+      </file>
+      <file name="SentChallengesScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\SentChallengesScreen.tsx">
+        <metrics statements="25" coveredstatements="0" conditionals="32" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="45" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="55" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="82" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+      </file>
+      <file name="UploadScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\game\UploadScreen.tsx">
+        <metrics statements="108" coveredstatements="0" conditionals="107" coveredconditionals="0" methods="28" coveredmethods="0"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="60" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="65" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="67" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="68" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="89" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="102" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="107" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="108" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="120" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="129" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="134" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="138" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="163" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="164" count="0" type="stmt"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="166" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="167" count="0" type="stmt"/>
+        <line num="168" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="174" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="176" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="177" count="0" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="180" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="182" count="0" type="stmt"/>
+        <line num="185" count="0" type="stmt"/>
+        <line num="186" count="0" type="stmt"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="188" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="191" count="0" type="stmt"/>
+        <line num="193" count="0" type="stmt"/>
+        <line num="196" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="200" count="0" type="stmt"/>
+        <line num="213" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="216" count="0" type="stmt"/>
+        <line num="218" count="0" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="220" count="0" type="stmt"/>
+        <line num="221" count="0" type="stmt"/>
+        <line num="222" count="0" type="stmt"/>
+        <line num="224" count="0" type="stmt"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="230" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="232" count="0" type="stmt"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="253" count="0" type="stmt"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="255" count="0" type="stmt"/>
+        <line num="256" count="0" type="stmt"/>
+        <line num="268" count="0" type="stmt"/>
+        <line num="343" count="0" type="stmt"/>
+        <line num="346" count="0" type="stmt"/>
+        <line num="364" count="0" type="stmt"/>
+        <line num="411" count="0" type="stmt"/>
+        <line num="412" count="0" type="stmt"/>
+        <line num="414" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.screens.profile">
+      <metrics statements="88" coveredstatements="24" conditionals="86" coveredconditionals="21" methods="18" coveredmethods="4"/>
+      <file name="ProfileScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\profile\ProfileScreen.tsx">
+        <metrics statements="71" coveredstatements="24" conditionals="68" coveredconditionals="21" methods="16" coveredmethods="4"/>
+        <line num="16" count="10" type="stmt"/>
+        <line num="17" count="10" type="stmt"/>
+        <line num="18" count="10" type="stmt"/>
+        <line num="19" count="10" type="stmt"/>
+        <line num="20" count="10" type="stmt"/>
+        <line num="21" count="10" type="stmt"/>
+        <line num="22" count="10" type="stmt"/>
+        <line num="23" count="10" type="stmt"/>
+        <line num="25" count="10" type="stmt"/>
+        <line num="26" count="5" type="stmt"/>
+        <line num="30" count="5" type="stmt"/>
+        <line num="31" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="32" count="5" type="stmt"/>
+        <line num="33" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="34" count="5" type="stmt"/>
+        <line num="35" count="5" type="stmt"/>
+        <line num="36" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="38" count="5" type="stmt"/>
+        <line num="42" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="65" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="72" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="82" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="102" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="107" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="111" count="0" type="stmt"/>
+        <line num="114" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="116" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="120" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="122" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="131" count="1" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="140" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="141" count="5" type="stmt"/>
+        <line num="148" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="150" count="5" type="stmt"/>
+        <line num="228" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="307" count="1" type="stmt"/>
+      </file>
+      <file name="ProfileSetupScreen.tsx" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\screens\profile\ProfileSetupScreen.tsx">
+        <metrics statements="17" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="25" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="33" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.types">
+      <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="index.ts" path="C:\Users\Binu\Documents\GitHub\PhotoSnap\src\types\index.ts">
+        <metrics statements="0" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      </file>
+    </package>
+  </project>
+</coverage>

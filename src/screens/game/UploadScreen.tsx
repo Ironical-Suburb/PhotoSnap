@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, Image, StyleSheet,
-  Alert, ActivityIndicator, Platform, TextInput,
+  Alert, ActivityIndicator, TextInput,
   StatusBar, ScrollView, KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -235,7 +235,7 @@ export default function UploadScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 

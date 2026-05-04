@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, TextInput,
-  StyleSheet, ActivityIndicator, Modal, StatusBar, ScrollView, KeyboardAvoidingView, Platform,
+  StyleSheet, ActivityIndicator, Modal, StatusBar, ScrollView, KeyboardAvoidingView,
 } from 'react-native';
 import EncryptedImage from '../../components/EncryptedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -144,7 +144,7 @@ export default function GuessScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 

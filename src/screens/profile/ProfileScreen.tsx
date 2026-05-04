@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, Switch, Image,
   StyleSheet, Alert, ActivityIndicator,
-  KeyboardAvoidingView, Platform, ScrollView, StatusBar,
+  KeyboardAvoidingView, ScrollView, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -152,7 +152,7 @@ export default function ProfileScreen() {
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 

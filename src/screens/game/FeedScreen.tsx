@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, FlatList,
+  View, Text, Image, TouchableOpacity, StyleSheet, FlatList,
   ActivityIndicator, RefreshControl, StatusBar, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -75,11 +75,23 @@ function PostCard({
   onGuessTap: (post: PostWithRound) => void;
   onReactionTap: (post: PostWithRound, emoji: Emoji) => void;
 }) {
+  const navigation = useNavigation<Nav>();
   const badge = challengeBadge(post.challenge_type);
   const streak = post.sender?.current_streak ?? 0;
   const isOwn = post.sender_id === currentUserId;
   const hasChallenge = post.challenge_type && post.challenge_type !== 'none';
   const { expired, label: expiryLabel, urgent } = getTimeLeft(post.created_at);
+
+  function onSenderPress() {
+    if (isOwn) {
+      navigation.navigate('Profile');
+    } else {
+      navigation.navigate('FriendStats', {
+        friendId: post.sender_id,
+        friendName: post.sender?.display_name ?? 'Friend',
+      });
+    }
+  }
 
   const myReaction = post.post_reactions?.find((r) => r.user_id === currentUserId)?.emoji ?? null;
   const reactionCounts = REACTION_EMOJIS.reduce<Record<string, number>>((acc, e) => {
@@ -96,12 +108,16 @@ function PostCard({
         </View>
       )}
 
-      {/* Header */}
-      <View style={styles.cardHeader}>
+      {/* Header — tappable to view sender's profile */}
+      <TouchableOpacity style={styles.cardHeader} onPress={onSenderPress} activeOpacity={0.7}>
         <View style={styles.cardAvatar}>
-          <Text style={styles.cardAvatarText}>
-            {(post.sender?.display_name?.[0] ?? '?').toUpperCase()}
-          </Text>
+          {post.sender?.avatar_url ? (
+            <Image source={{ uri: post.sender.avatar_url }} style={styles.cardAvatarImage} />
+          ) : (
+            <Text style={styles.cardAvatarText}>
+              {(post.sender?.display_name?.[0] ?? '?').toUpperCase()}
+            </Text>
+          )}
         </View>
         <View style={styles.cardHeaderInfo}>
           <View style={styles.cardNameRow}>
@@ -115,7 +131,8 @@ function PostCard({
           </View>
           <Text style={styles.cardTime}>{timeAgo(post.created_at)}</Text>
         </View>
-      </View>
+        <Ionicons name="chevron-forward" size={14} color={C.text3} />
+      </TouchableOpacity>
 
       {/* Photo */}
       <View style={[styles.cardPhoto, expired && styles.cardPhotoExpired]}>
@@ -461,7 +478,9 @@ const styles = StyleSheet.create({
   cardAvatar: {
     width: 38, height: 38, borderRadius: 19,
     backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center',
+    overflow: 'hidden',
   },
+  cardAvatarImage: { width: 38, height: 38, borderRadius: 19 },
   cardAvatarText: { color: C.white, fontWeight: '800', fontSize: 15 },
   cardHeaderInfo: { flex: 1 },
   cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
