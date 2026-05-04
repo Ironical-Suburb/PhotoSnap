@@ -39,6 +39,7 @@ function Wheel({ items, selectedIndex, onSelect, flex = 1 }: WheelProps) {
       showsVerticalScrollIndicator={false}
       snapToInterval={ITEM_H}
       decelerationRate="fast"
+      nestedScrollEnabled={true}
       onMomentumScrollEnd={onScrollEnd}
       onScrollEndDrag={onScrollEnd}
       contentContainerStyle={{ paddingVertical: PAD }}

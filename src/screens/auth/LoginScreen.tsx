@@ -3,10 +3,11 @@ import {
   View, Text, TextInput, TouchableOpacity, Image,
   StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar,
 } from 'react-native';
+import * as Linking from 'expo-linking';
 import { supabase } from '../../lib/supabase';
 import { C, R } from '../../theme';
 
-const REDIRECT_URL = 'https://mhjthroclnjnqzdkinwt.supabase.co';
+const REDIRECT_URL = Linking.createURL('/');
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
