@@ -1,4 +1,9 @@
 import '@testing-library/jest-native/extend-expect';
+import { configure } from '@testing-library/react-native';
+
+// Coverage instrumentation adds significant overhead; increase async timeout so
+// waitFor/findBy calls don't expire before state updates flush under --coverage.
+configure({ asyncUtilTimeout: 5000 });
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () =>
