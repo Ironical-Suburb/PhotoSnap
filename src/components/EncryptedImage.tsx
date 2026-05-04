@@ -30,7 +30,7 @@ export default function EncryptedImage({ uri, style, resizeMode = 'cover' }: Pro
 
   if (loading) {
     return (
-      <View style={[styles.placeholder, style]}>
+      <View testID="encrypted-image-loader" style={[styles.placeholder, style]}>
         <ActivityIndicator color={C.primary} size="small" />
       </View>
     );
@@ -42,6 +42,7 @@ export default function EncryptedImage({ uri, style, resizeMode = 'cover' }: Pro
 
   return (
     <Image
+      testID="encrypted-image"
       source={{ uri: localUri }}
       style={style}
       resizeMode={resizeMode}

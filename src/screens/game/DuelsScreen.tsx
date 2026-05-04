@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase';
 import type { AppStackParamList } from '../../navigation/types';
 import { C, R } from '../../theme';
 
-type DuelRow = {
+export type DuelRow = {
   id: string;
   status: string;
   created_at: string;
@@ -26,7 +26,7 @@ type DuelRow = {
   opponent: { display_name: string };
 };
 
-function statusLabel(duel: DuelRow, userId: string): { text: string; color: string } {
+export function statusLabel(duel: DuelRow, userId: string): { text: string; color: string } {
   const isChallenger = duel.challenger_id === userId;
   switch (duel.status) {
     case 'pending':

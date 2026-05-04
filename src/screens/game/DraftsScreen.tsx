@@ -58,18 +58,21 @@ export default function DraftsScreen() {
             )}
             <View style={styles.cardInfo}>
               <Text style={styles.cardDate}>
-                {new Date(item.actualDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {item.locationHint
+                  ? `📍 ${item.locationHint}`
+                  : new Date(item.actualDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </Text>
               {item.caption ? (
                 <Text style={styles.cardCaption} numberOfLines={1}>"{item.caption}"</Text>
               ) : (
                 <Text style={styles.cardCaption} numberOfLines={1}>No caption</Text>
               )}
-              {item.friendName ? (
-                <Text style={styles.cardFriend}>To {item.friendName}</Text>
-              ) : (
-                <Text style={styles.cardFriendEmpty}>No friend selected</Text>
-              )}
+              <Text style={styles.cardFriend}>
+                {item.challengeType === 'date' ? '📅 Date challenge'
+                  : item.challengeType === 'location' ? '📍 Location challenge'
+                  : item.challengeType === 'both' ? '📅📍 Date + Location'
+                  : '🖼️ No challenge'}
+              </Text>
               <Text style={styles.cardSaved}>
                 Saved {new Date(item.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </Text>

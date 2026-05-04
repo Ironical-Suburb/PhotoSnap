@@ -25,7 +25,7 @@ type Emoji = typeof REACTION_EMOJIS[number];
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
 
-function timeAgo(iso: string): string {
+export function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return 'just now';
@@ -37,7 +37,7 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function getTimeLeft(createdAt: string): { expired: boolean; label: string; urgent: boolean } {
+export function getTimeLeft(createdAt: string): { expired: boolean; label: string; urgent: boolean } {
   const remaining = new Date(createdAt).getTime() + 86400000 - Date.now();
   if (remaining <= 0) return { expired: true, label: 'Ended', urgent: false };
   const hrs = Math.floor(remaining / 3600000);

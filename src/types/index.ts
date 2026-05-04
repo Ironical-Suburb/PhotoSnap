@@ -81,6 +81,21 @@ export type FeedPost = Photo & {
   post_reactions: PostReaction[];
 };
 
+export type DuelStatus = 'pending' | 'active' | 'complete' | 'rejected';
+
+export type Duel = {
+  id: string;
+  challenger_id: string;
+  opponent_id: string;
+  challenger_photo_id: string | null;
+  opponent_photo_id: string | null;
+  challenger_score: number | null;
+  opponent_score: number | null;
+  winner_id: string | null;
+  status: DuelStatus;
+  created_at: string;
+};
+
 export type LeaderboardEntry = {
   user_id: string;
   display_name: string;

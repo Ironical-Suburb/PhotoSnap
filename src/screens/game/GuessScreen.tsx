@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, Image, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Modal, StatusBar, ScrollView,
+  View, Text, TouchableOpacity, TextInput,
+  StyleSheet, ActivityIndicator, Modal, StatusBar, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import EncryptedImage from '../../components/EncryptedImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,20 +18,32 @@ import { C, R } from '../../theme';
 
 type GuessRoute = RouteProp<AppStackParamList, 'Guess'>;
 
+export function scoreLocation(guess: string, actual: string): { points: number; label: string } {
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+  const g = norm(guess);
+  const a = norm(actual);
+  if (!g) return { points: 0, label: 'Way off!' };
+  if (g === a) return { points: 1000, label: 'Spot on!' };
+  const aWords = a.split(/\s+/).filter((w) => w.length > 2);
+  if (aWords.every((w) => g.includes(w))) return { points: 800, label: 'Very close!' };
+  if (aWords.some((w) => w.length > 3 && g.includes(w))) return { points: 400, label: 'Partially right' };
+  return { points: 0, label: 'Way off!' };
+}
+
 export default function GuessScreen() {
   const route = useRoute<GuessRoute>();
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const roundId = route.params?.roundId;
+
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [round, setRound] = useState<Round | null>(null);
   const [guessDate, setGuessDate] = useState(() => localMidnight());
-  const [result, setResult] = useState<{ points: number; label: string; daysOff: number } | null>(null);
+  const [guessLocation, setGuessLocation] = useState('');
+  const [result, setResult] = useState<{ points: number; label: string; detail: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [photoZoomed, setPhotoZoomed] = useState(false);
 
-  useEffect(() => {
-    fetchRound();
-  }, [roundId]);
+  useEffect(() => { fetchRound(); }, [roundId]);
 
   async function fetchRound() {
     setLoading(true);
@@ -42,21 +54,53 @@ export default function GuessScreen() {
       .single();
 
     if (data) {
-      setRound(data as Round);
-      setPhoto((data as any).photos as Photo);
+      const r = data as Round & { photos: Photo };
+      setRound(r);
+      setPhoto(r.photos);
+      // If already resolved, show the result
+      if (r.resolved_at && r.score !== null) {
+        const p = r.photos;
+        const type = p.challenge_type ?? 'date';
+        if (type === 'location') {
+          const scored = scoreLocation(r.guess_location ?? '', p.location_hint ?? '');
+          setResult({ ...scored, detail: `Answer: ${p.location_hint ?? '?'}` });
+        } else {
+          const scored = calculateScore(p.actual_date ?? '', r.guess_date ?? '');
+          const daysOff = scored.daysOff;
+          setResult({
+            points: scored.points,
+            label: scored.label,
+            detail: daysOff === 0
+              ? 'Exactly right!'
+              : `${daysOff} day${daysOff !== 1 ? 's' : ''} off — Actual: ${new Date(p.actual_date ?? '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+          });
+        }
+      }
     }
     setLoading(false);
   }
 
-  async function submitGuess() {
+  async function submitDateGuess() {
     if (!round || !photo) return;
-
     const guessStr = toLocalDateString(guessDate);
-    const scored = calculateScore(photo.actual_date, guessStr);
-    setResult(scored);
-
+    const scored = calculateScore(photo.actual_date ?? '', guessStr);
+    const detail = scored.daysOff === 0
+      ? 'Exactly right!'
+      : `${scored.daysOff} day${scored.daysOff !== 1 ? 's' : ''} off — Actual: ${new Date(photo.actual_date ?? '').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+    setResult({ points: scored.points, label: scored.label, detail });
     await supabase.from('rounds').update({
       guess_date: guessStr,
+      score: scored.points,
+      resolved_at: new Date().toISOString(),
+    }).eq('id', round.id);
+  }
+
+  async function submitLocationGuess() {
+    if (!round || !photo) return;
+    const scored = scoreLocation(guessLocation, photo.location_hint ?? '');
+    setResult({ ...scored, detail: `Answer: ${photo.location_hint ?? '?'}` });
+    await supabase.from('rounds').update({
+      guess_location: guessLocation.trim(),
       score: scored.points,
       resolved_at: new Date().toISOString(),
     }).eq('id', round.id);
@@ -79,6 +123,7 @@ export default function GuessScreen() {
     );
   }
 
+  const challengeType = photo.challenge_type ?? 'date';
   const scoreColor = result
     ? result.points >= 800 ? C.accent
     : result.points >= 400 ? C.success
@@ -86,85 +131,109 @@ export default function GuessScreen() {
     : C.error
     : C.primary;
 
+  const guessLabel = challengeType === 'location' ? 'WHERE WAS THIS TAKEN?' : 'WHEN WAS THIS TAKEN?';
+  const canSubmit = challengeType === 'location' ? guessLocation.trim().length > 0 : true;
+
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      {/* Back button */}
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
         <Text style={styles.backBtnText}>←</Text>
       </TouchableOpacity>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
 
-        {/* Photo with polaroid frame */}
-        <TouchableOpacity
-          onPress={() => setPhotoZoomed(true)}
-          activeOpacity={0.95}
-          style={styles.polaroidWrap}
-        >
-          <View style={styles.polaroid}>
-            <EncryptedImage uri={photo.storage_url} style={styles.photo} resizeMode="contain" />
-          </View>
-          <Text style={styles.zoomHint}>Tap to enlarge</Text>
-        </TouchableOpacity>
+          {/* Challenge type badge */}
+          {challengeType !== 'none' && (
+            <View style={styles.typeBadge}>
+              <Text style={styles.typeBadgeText}>
+                {challengeType === 'date' ? '📅 Date challenge' : '📍 Location challenge'}
+              </Text>
+            </View>
+          )}
 
-        {photo.caption ? (
-          <View style={styles.captionWrap}>
-            <Text style={styles.captionQuote}>"</Text>
-            <Text style={styles.caption}>{photo.caption}</Text>
-          </View>
-        ) : null}
+          {/* Photo */}
+          <TouchableOpacity
+            onPress={() => setPhotoZoomed(true)}
+            activeOpacity={0.95}
+            style={styles.polaroidWrap}
+          >
+            <View style={styles.polaroid}>
+              <EncryptedImage uri={photo.storage_url} style={styles.photo} resizeMode="contain" />
+            </View>
+            <Text style={styles.zoomHint}>Tap to enlarge</Text>
+          </TouchableOpacity>
 
-        {result ? (
-          <View style={styles.resultCard}>
-            <Text style={styles.resultLabel}>{result.label}</Text>
-            <Text style={[styles.resultPoints, { color: scoreColor }]}>{result.points}</Text>
-            <Text style={styles.resultPtsLabel}>points</Text>
-            <View style={styles.resultDivider} />
-            <Text style={styles.resultDays}>
-              {result.daysOff === 0 ? 'Exactly right!' : `${result.daysOff} day${result.daysOff !== 1 ? 's' : ''} off`}
-            </Text>
-            <Text style={styles.resultActual}>
-              Actual date: {new Date(photo.actual_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </Text>
-            <TouchableOpacity
-              style={styles.doneBtn}
-              onPress={() => navigation.navigate('Challenges')}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.doneBtnText}>Back to Inbox</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.guessCard}>
-            <Text style={styles.guessLabel}>WHEN WAS THIS TAKEN?</Text>
+          {photo.caption ? (
+            <View style={styles.captionWrap}>
+              <Text style={styles.captionQuote}>"</Text>
+              <Text style={styles.caption}>{photo.caption}</Text>
+            </View>
+          ) : null}
 
-            <DateSlider
-              value={guessDate}
-              onChange={(d) => setGuessDate(localMidnight(d))}
-              maximumDate={new Date()}
-            />
+          {result ? (
+            <View style={styles.resultCard}>
+              <Text style={styles.resultLabel}>{result.label}</Text>
+              <Text style={[styles.resultPoints, { color: scoreColor }]}>{result.points}</Text>
+              <Text style={styles.resultPtsLabel}>points</Text>
+              <View style={styles.resultDivider} />
+              <Text style={styles.resultDetail}>{result.detail}</Text>
+              <TouchableOpacity
+                style={styles.doneBtn}
+                onPress={() => navigation.goBack()}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.doneBtnText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.guessCard}>
+              <Text style={styles.guessLabel}>{guessLabel}</Text>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={submitGuess} activeOpacity={0.85}>
-              <Text style={styles.submitBtnText}>Submit Guess</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+              {challengeType === 'location' ? (
+                <TextInput
+                  style={styles.locationInput}
+                  placeholder="Type your guess (e.g. Tokyo, Japan)"
+                  placeholderTextColor={C.text3}
+                  value={guessLocation}
+                  onChangeText={setGuessLocation}
+                  maxLength={80}
+                  selectionColor={C.primary}
+                  returnKeyType="done"
+                />
+              ) : (
+                <DateSlider
+                  value={guessDate}
+                  onChange={(d) => setGuessDate(localMidnight(d))}
+                  maximumDate={new Date()}
+                />
+              )}
 
-      </ScrollView>
+              <TouchableOpacity
+                style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
+                onPress={challengeType === 'location' ? submitLocationGuess : submitDateGuess}
+                disabled={!canSubmit}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.submitBtnText}>Submit Guess</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-      {/* Fullscreen zoom modal */}
+        </ScrollView>
+      </KeyboardAvoidingView>
+
       <Modal visible={photoZoomed} animationType="fade" statusBarTranslucent>
         <View style={styles.zoomModal}>
           <TouchableOpacity style={styles.zoomClose} onPress={() => setPhotoZoomed(false)}>
             <Text style={styles.zoomCloseText}>✕</Text>
           </TouchableOpacity>
-          <EncryptedImage
-            uri={photo.storage_url}
-            style={styles.zoomImage}
-            resizeMode="contain"
-          />
+          <EncryptedImage uri={photo.storage_url} style={styles.zoomImage} resizeMode="contain" />
         </View>
       </Modal>
     </SafeAreaView>
@@ -172,192 +241,81 @@ export default function GuessScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.bg,
+  root: { flex: 1, backgroundColor: C.bg },
+  loadingRoot: { flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center' },
+  errorText: { color: C.text2, fontSize: 16 },
+  backBtn: { paddingHorizontal: 20, paddingVertical: 12 },
+  backBtnText: { fontSize: 22, color: C.text2 },
+
+  content: { paddingHorizontal: 20, paddingBottom: 32, gap: 16 },
+
+  typeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: C.primaryMuted,
+    borderRadius: R.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,95,31,0.3)',
   },
-  loadingRoot: {
-    flex: 1,
-    backgroundColor: C.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: C.text2,
-    fontSize: 16,
-  },
-  backBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  backBtnText: {
-    fontSize: 22,
-    color: C.text2,
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    gap: 16,
-  },
-  polaroidWrap: {
-    alignItems: 'center',
-  },
+  typeBadgeText: { fontSize: 12, fontWeight: '600', color: C.primary },
+
+  polaroidWrap: { alignItems: 'center' },
   polaroid: {
-    backgroundColor: C.white,
-    padding: 8,
-    paddingBottom: 32,
-    borderRadius: R.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
+    backgroundColor: C.white, padding: 8, paddingBottom: 32,
+    borderRadius: R.sm, shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.4, shadowRadius: 16, elevation: 12,
   },
-  photo: {
-    width: '100%',
-    aspectRatio: 1,
-    borderRadius: 2,
-  },
-  zoomHint: {
-    fontSize: 11,
-    color: C.text3,
-    marginTop: 8,
-    letterSpacing: 0.3,
-  },
+  photo: { width: '100%', aspectRatio: 1, borderRadius: 2 },
+  zoomHint: { fontSize: 11, color: C.text3, marginTop: 8, letterSpacing: 0.3 },
+
   captionWrap: {
-    backgroundColor: C.surface,
-    borderRadius: R.md,
-    padding: 16,
-    borderLeftWidth: 3,
-    borderLeftColor: C.primary,
-    flexDirection: 'row',
-    gap: 8,
+    backgroundColor: C.surface, borderRadius: R.md, padding: 16,
+    borderLeftWidth: 3, borderLeftColor: C.primary, flexDirection: 'row', gap: 8,
   },
-  captionQuote: {
-    fontSize: 28,
-    color: C.primary,
-    lineHeight: 24,
-    fontWeight: '800',
-  },
-  caption: {
-    flex: 1,
-    fontSize: 15,
-    color: C.text2,
-    lineHeight: 22,
-    fontStyle: 'italic',
-  },
+  captionQuote: { fontSize: 28, color: C.primary, lineHeight: 24, fontWeight: '800' },
+  caption: { flex: 1, fontSize: 15, color: C.text2, lineHeight: 22, fontStyle: 'italic' },
+
   guessCard: {
-    backgroundColor: C.surface,
-    borderRadius: R.xl,
-    padding: 22,
-    gap: 16,
-    borderWidth: 0.5,
-    borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: R.xl, padding: 22,
+    gap: 16, borderWidth: 0.5, borderColor: C.border,
   },
-  guessLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: C.text3,
-    letterSpacing: 1.5,
+  guessLabel: { fontSize: 10, fontWeight: '800', color: C.text3, letterSpacing: 1.5 },
+
+  locationInput: {
+    backgroundColor: C.surface2, borderRadius: R.md, padding: 16,
+    fontSize: 16, color: C.text, borderWidth: 0.5, borderColor: C.border,
   },
+
   submitBtn: {
-    backgroundColor: C.primary,
-    borderRadius: R.md,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    backgroundColor: C.primary, borderRadius: R.md, paddingVertical: 16,
+    alignItems: 'center', shadowColor: C.primary,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6,
   },
-  submitBtnText: {
-    color: C.white,
-    fontWeight: '800',
-    fontSize: 16,
-    letterSpacing: 0.2,
-  },
+  submitBtnDisabled: { opacity: 0.4 },
+  submitBtnText: { color: C.white, fontWeight: '800', fontSize: 16, letterSpacing: 0.2 },
+
   resultCard: {
-    backgroundColor: C.surface,
-    borderRadius: R.xl,
-    padding: 28,
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 0.5,
-    borderColor: C.border,
+    backgroundColor: C.surface, borderRadius: R.xl, padding: 28,
+    alignItems: 'center', gap: 8, borderWidth: 0.5, borderColor: C.border,
   },
-  resultLabel: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: C.text,
-    letterSpacing: -0.2,
-    marginBottom: 4,
-  },
-  resultPoints: {
-    fontSize: 72,
-    fontWeight: '900',
-    letterSpacing: -2,
-    lineHeight: 76,
-  },
-  resultPtsLabel: {
-    fontSize: 14,
-    color: C.text3,
-    fontWeight: '600',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  resultDivider: {
-    width: 40,
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 8,
-  },
-  resultDays: {
-    fontSize: 16,
-    color: C.text2,
-    fontWeight: '600',
-  },
-  resultActual: {
-    fontSize: 13,
-    color: C.text3,
-    marginTop: 2,
-  },
+  resultLabel: { fontSize: 20, fontWeight: '700', color: C.text, letterSpacing: -0.2, marginBottom: 4 },
+  resultPoints: { fontSize: 72, fontWeight: '900', letterSpacing: -2, lineHeight: 76 },
+  resultPtsLabel: { fontSize: 14, color: C.text3, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase' },
+  resultDivider: { width: 40, height: 1, backgroundColor: C.border, marginVertical: 8 },
+  resultDetail: { fontSize: 14, color: C.text2, fontWeight: '500', textAlign: 'center' },
   doneBtn: {
-    backgroundColor: C.surface2,
-    borderRadius: R.md,
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    marginTop: 8,
+    backgroundColor: C.surface2, borderRadius: R.md,
+    paddingVertical: 14, paddingHorizontal: 28, marginTop: 8,
   },
-  doneBtnText: {
-    color: C.text2,
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  zoomModal: {
-    flex: 1,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-  },
+  doneBtnText: { color: C.text2, fontWeight: '700', fontSize: 14 },
+
+  zoomModal: { flex: 1, backgroundColor: '#000', justifyContent: 'center' },
   zoomClose: {
-    position: 'absolute',
-    top: 48,
-    right: 20,
-    zIndex: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'absolute', top: 48, right: 20, zIndex: 10,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center',
   },
-  zoomCloseText: {
-    color: C.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  zoomImage: {
-    width: '100%',
-    height: '100%',
-  },
+  zoomCloseText: { color: C.white, fontSize: 16, fontWeight: '700' },
+  zoomImage: { width: '100%', height: '100%' },
 });

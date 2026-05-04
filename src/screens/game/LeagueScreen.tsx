@@ -18,7 +18,7 @@ const TIER: Record<Tier, { label: string; emoji: string; color: string; min: num
   unranked: { label: 'Unranked', emoji: '🔘', color: C.text3,   min: -1,  next: 0   },
 };
 
-function getTier(avg: number, rounds: number): Tier {
+export function getTier(avg: number, rounds: number): Tier {
   if (rounds === 0) return 'unranked';
   if (avg >= 800) return 'diamond';
   if (avg >= 600) return 'gold';
@@ -26,7 +26,7 @@ function getTier(avg: number, rounds: number): Tier {
   return 'bronze';
 }
 
-function getWeekStart(): string {
+export function getWeekStart(): string {
   const d = new Date();
   const day = d.getDay();
   d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));

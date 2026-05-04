@@ -179,6 +179,24 @@ export default function ProfileScreen() {
             </TouchableOpacity>
             <Text style={styles.heroName}>{profile.display_name}</Text>
             <Text style={styles.heroEmail}>{profile.email}</Text>
+
+            {/* Streak display */}
+            {(profile.current_streak ?? 0) > 0 && (
+              <View style={styles.streakRow}>
+                <View style={styles.streakCard}>
+                  <Text style={styles.streakFire}>🔥</Text>
+                  <Text style={styles.streakNumber}>{profile.current_streak}</Text>
+                  <Text style={styles.streakLabel}>day streak</Text>
+                </View>
+                {(profile.longest_streak ?? 0) > (profile.current_streak ?? 0) && (
+                  <View style={styles.streakCard}>
+                    <Text style={styles.streakFire}>🏆</Text>
+                    <Text style={styles.streakNumber}>{profile.longest_streak}</Text>
+                    <Text style={styles.streakLabel}>best streak</Text>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Info card */}
@@ -366,6 +384,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: C.text3,
   },
+  streakRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  streakCard: {
+    backgroundColor: C.surface,
+    borderRadius: R.lg,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,95,31,0.25)',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    alignItems: 'center',
+    gap: 2,
+  },
+  streakFire: { fontSize: 20 },
+  streakNumber: { fontSize: 22, fontWeight: '900', color: C.primary, letterSpacing: -0.5 },
+  streakLabel: { fontSize: 10, color: C.text3, fontWeight: '600', letterSpacing: 0.5 },
   card: {
     backgroundColor: C.surface,
     borderRadius: R.xl,

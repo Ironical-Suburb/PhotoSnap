@@ -52,7 +52,7 @@ export default function ChallengesScreen() {
         .from('rounds')
         .select('id, photo_id, created_at, photos(storage_url, users!photos_sender_id_fkey(display_name))')
         .eq('guesser_id', user.id)
-        .is('guess_date', null)
+        .is('resolved_at', null)
         .order('created_at', { ascending: true }),
       supabase
         .from('messages')

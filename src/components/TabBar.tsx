@@ -4,12 +4,12 @@ import { useNavigation, useRoute, CommonActions } from '@react-navigation/native
 import { Ionicons } from '@expo/vector-icons';
 import { C } from '../theme';
 
-type TabName = 'Home' | 'Challenges' | 'Upload' | 'Friends' | 'Profile';
+type TabName = 'Feed' | 'Challenges' | 'Upload' | 'Friends' | 'Profile';
 
 const TABS: { name: TabName; label: string; icon: string; iconActive: string }[] = [
-  { name: 'Home',       label: 'Home',    icon: 'home-outline',          iconActive: 'home' },
+  { name: 'Feed',       label: 'Feed',    icon: 'home-outline',          iconActive: 'home' },
   { name: 'Challenges', label: 'Inbox',   icon: 'mail-outline',          iconActive: 'mail' },
-  { name: 'Upload',     label: 'Snap',    icon: 'camera',                iconActive: 'camera' },
+  { name: 'Upload',     label: 'Post',    icon: 'camera',                iconActive: 'camera' },
   { name: 'Friends',    label: 'Friends', icon: 'people-outline',        iconActive: 'people' },
   { name: 'Profile',    label: 'Me',      icon: 'person-circle-outline', iconActive: 'person-circle' },
 ];
@@ -30,9 +30,9 @@ export default function TabBar({ challengeCount = 0 }: { challengeCount?: number
       <View style={styles.bar}>
         {TABS.map((tab) => {
           const active = current === tab.name;
-          const isSnap = tab.name === 'Upload';
+          const isPost = tab.name === 'Upload';
 
-          if (isSnap) {
+          if (isPost) {
             return (
               <TouchableOpacity
                 key={tab.name}
@@ -95,56 +95,22 @@ const styles = StyleSheet.create({
     gap: 3,
     paddingTop: 6,
   },
-  iconWrap: {
-    position: 'relative',
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: C.text3,
-    letterSpacing: 0.2,
-  },
-  labelActive: {
-    color: C.primary,
-    fontWeight: '700',
-  },
-  snapWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 4,
-  },
+  iconWrap: { position: 'relative' },
+  label: { fontSize: 10, fontWeight: '500', color: C.text3, letterSpacing: 0.2 },
+  labelActive: { color: C.primary, fontWeight: '700' },
+  snapWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 4 },
   snapBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: C.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: C.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center',
+    shadowColor: C.primary, shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4, shadowRadius: 6, elevation: 6,
   },
-  snapBtnActive: {
-    backgroundColor: '#FF7A45',
-  },
+  snapBtnActive: { backgroundColor: '#FF7A45' },
   badge: {
-    position: 'absolute',
-    top: -4,
-    right: -8,
-    backgroundColor: C.error,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 3,
+    position: 'absolute', top: -4, right: -8,
+    backgroundColor: C.error, borderRadius: 8,
+    minWidth: 16, height: 16,
+    justifyContent: 'center', alignItems: 'center', paddingHorizontal: 3,
   },
-  badgeText: {
-    color: C.white,
-    fontSize: 9,
-    fontWeight: '800',
-  },
+  badgeText: { color: C.white, fontSize: 9, fontWeight: '800' },
 });
