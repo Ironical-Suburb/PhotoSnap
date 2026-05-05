@@ -1,5 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import MainTabsScreen from '../screens/MainTabsScreen';
 import FeedScreen from '../screens/game/FeedScreen';
 import HomeScreen from '../screens/game/HomeScreen';
 import ChallengesScreen from '../screens/game/ChallengesScreen';
@@ -15,6 +16,7 @@ import FriendRequestsScreen from '../screens/friends/FriendRequestsScreen';
 import FriendStatsScreen from '../screens/friends/FriendStatsScreen';
 import ChatScreen from '../screens/chat/ChatScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
+import SettingsScreen from '../screens/profile/SettingsScreen';
 import LeagueScreen from '../screens/game/LeagueScreen';
 import DuelsScreen from '../screens/game/DuelsScreen';
 import DuelScreen from '../screens/game/DuelScreen';
@@ -35,6 +37,7 @@ const darkHeader = {
 export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
+      <Stack.Screen name="MainTabs" component={MainTabsScreen} />
       <Stack.Screen name="Feed" component={FeedScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Challenges" component={ChallengesScreen} />
@@ -54,6 +57,7 @@ export default function AppNavigator() {
       />
       <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} options={{ ...darkHeader, title: 'Settings', headerShown: false }} />
       <Stack.Screen name="League" component={LeagueScreen} options={{ ...darkHeader, title: 'Accuracy League' }} />
       <Stack.Screen name="Duels" component={DuelsScreen} options={{ ...darkHeader, title: 'Duels' }} />
       <Stack.Screen name="Duel" component={DuelScreen} options={{ ...darkHeader, title: '' }} />

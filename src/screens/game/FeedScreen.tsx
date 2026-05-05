@@ -9,7 +9,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import EncryptedImage from '../../components/EncryptedImage';
-import TabBar from '../../components/TabBar';
 import type { FeedPost, ChallengeType, DailyMoment } from '../../types';
 import type { AppStackParamList } from '../../navigation/types';
 import { C, R } from '../../theme';
@@ -101,60 +100,57 @@ function PostCard({
 
   return (
     <View style={styles.card}>
-      {/* Daily moment banner */}
-      {post.is_daily_moment && (
-        <View style={styles.dailyBanner}>
-          <Text style={styles.dailyBannerText}>📸  DAILY MOMENT</Text>
-        </View>
-      )}
-
-      {/* Header — tappable to view sender's profile */}
-      <TouchableOpacity style={styles.cardHeader} onPress={onSenderPress} activeOpacity={0.7}>
-        <View style={styles.cardAvatar}>
-          {post.sender?.avatar_url ? (
-            <Image source={{ uri: post.sender.avatar_url }} style={styles.cardAvatarImage} />
-          ) : (
-            <Text style={styles.cardAvatarText}>
-              {(post.sender?.display_name?.[0] ?? '?').toUpperCase()}
-            </Text>
-          )}
+      {/* Header */}
+      <TouchableOpacity style={styles.cardHeader} onPress={onSenderPress} activeOpacity={0.85}>
+        <View style={[styles.cardAvatarWrap, streak > 0 && styles.cardAvatarRing]}>
+          <View style={styles.cardAvatar}>
+            {post.sender?.avatar_url ? (
+              <Image source={{ uri: post.sender.avatar_url }} style={styles.cardAvatarImage} />
+            ) : (
+              <Text style={styles.cardAvatarText}>
+                {(post.sender?.display_name?.[0] ?? '?').toUpperCase()}
+              </Text>
+            )}
+          </View>
         </View>
         <View style={styles.cardHeaderInfo}>
           <View style={styles.cardNameRow}>
             <Text style={styles.cardName}>{post.sender?.display_name ?? 'Unknown'}</Text>
-            {streak > 1 && (
-              <View style={styles.streakPill}>
-                <Text style={styles.streakFire}>🔥</Text>
-                <Text style={styles.streakCount}>{streak}</Text>
+            {post.is_daily_moment && (
+              <View style={styles.dailyChip}>
+                <Text style={styles.dailyChipText}>Daily Moment</Text>
               </View>
             )}
           </View>
-          <Text style={styles.cardTime}>{timeAgo(post.created_at)}</Text>
+          <View style={styles.cardMetaRow}>
+            {streak > 1 && (
+              <>
+                <Text style={styles.streakFire}>🔥</Text>
+                <Text style={styles.streakCount}>{streak}</Text>
+                <Text style={styles.metaDot}>·</Text>
+              </>
+            )}
+            <Text style={styles.cardTime}>{timeAgo(post.created_at)}</Text>
+          </View>
         </View>
-        <Ionicons name="chevron-forward" size={14} color={C.text3} />
+        <Ionicons name="ellipsis-horizontal" size={18} color={C.text3} />
       </TouchableOpacity>
 
-      {/* Photo */}
+      {/* Photo — full width, 4:5 ratio like Instagram */}
       <View style={[styles.cardPhoto, expired && styles.cardPhotoExpired]}>
         <EncryptedImage uri={post.storage_url} style={styles.photo} resizeMode="cover" />
         {expired && <View style={styles.expiredOverlay} />}
-      </View>
-
-      {/* Body */}
-      <View style={styles.cardBody}>
         {badge && (
-          <View style={[styles.challengeBadge, { borderColor: badge.color + '40', backgroundColor: badge.color + '18' }]}>
-            <Ionicons name={badge.icon as any} size={13} color={badge.color} />
-            <Text style={[styles.challengeBadgeText, { color: badge.color }]}>{badge.label}</Text>
+          <View style={[styles.challengeOverlay, { backgroundColor: badge.color + 'CC' }]}>
+            <Ionicons name={badge.icon as any} size={12} color={C.white} />
+            <Text style={styles.challengeOverlayText}>{badge.label}</Text>
           </View>
         )}
+      </View>
 
-        {post.caption ? (
-          <Text style={styles.caption} numberOfLines={3}>{post.caption}</Text>
-        ) : null}
-
-        {/* Emoji reactions */}
-        <View style={styles.reactionRow}>
+      {/* Action row */}
+      <View style={styles.cardActions}>
+        <View style={styles.reactionsGroup}>
           {REACTION_EMOJIS.map((emoji) => (
             <TouchableOpacity
               key={emoji}
@@ -172,38 +168,33 @@ function PostCard({
           ))}
         </View>
 
-        {/* Footer: expiry + guess */}
-        {hasChallenge && (
-          <View style={styles.cardFooter}>
-            {expiryLabel ? (
-              <Text style={[styles.expiryLabel, urgent && styles.expiryLabelUrgent]}>
-                ⏰ {expiryLabel}
+        {hasChallenge && !isOwn && (
+          post.my_round?.resolved_at ? (
+            <View style={[styles.scorePill, { borderColor: scoreColor(post.my_round.score ?? 0) + '60' }]}>
+              <Ionicons name="checkmark-circle" size={13} color={scoreColor(post.my_round.score ?? 0)} />
+              <Text style={[styles.scorePillText, { color: scoreColor(post.my_round.score ?? 0) }]}>
+                {post.my_round.score} pts
               </Text>
-            ) : <View />}
-
-            {!isOwn && (
-              post.my_round?.resolved_at ? (
-                <View style={[styles.scorePill, { borderColor: scoreColor(post.my_round.score ?? 0) + '60' }]}>
-                  <Ionicons name="checkmark-circle" size={13} color={scoreColor(post.my_round.score ?? 0)} />
-                  <Text style={[styles.scorePillText, { color: scoreColor(post.my_round.score ?? 0) }]}>
-                    {post.my_round.score} pts
-                  </Text>
-                </View>
-              ) : expired ? (
-                <Text style={styles.expiredLabel}>Challenge ended</Text>
-              ) : (
-                <TouchableOpacity
-                  style={styles.guessBtn}
-                  onPress={() => onGuessTap(post)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.guessBtnText}>{post.my_round ? 'Continue' : 'Guess'}</Text>
-                  <Text style={styles.guessBtnArrow}>→</Text>
-                </TouchableOpacity>
-              )
-            )}
-          </View>
+            </View>
+          ) : expired ? (
+            <Text style={styles.expiredLabel}>Ended</Text>
+          ) : (
+            <TouchableOpacity style={styles.guessBtn} onPress={() => onGuessTap(post)} activeOpacity={0.85}>
+              <Text style={styles.guessBtnText}>{post.my_round ? 'Continue' : 'Guess'}</Text>
+              <Ionicons name="arrow-forward" size={13} color={C.white} />
+            </TouchableOpacity>
+          )
         )}
+      </View>
+
+      {/* Caption + expiry */}
+      <View style={styles.cardBody}>
+        {expiryLabel && hasChallenge && (
+          <Text style={[styles.expiryLabel, urgent && styles.expiryLabelUrgent]}>⏰ {expiryLabel}</Text>
+        )}
+        {post.caption ? (
+          <Text style={styles.caption} numberOfLines={2}>{post.caption}</Text>
+        ) : null}
       </View>
     </View>
   );
@@ -373,31 +364,43 @@ export default function FeedScreen() {
       <View style={styles.appBar}>
         <Text style={styles.appBarTitle}>PhotoSnap</Text>
         <TouchableOpacity
-          style={styles.inboxBtn}
-          onPress={() => navigation.navigate('Challenges')}
+          style={styles.uploadBtn}
+          onPress={() => navigation.navigate('Upload')}
           activeOpacity={0.8}
         >
-          <Ionicons name="mail-outline" size={22} color={C.text2} />
-          {pendingCount > 0 && (
-            <View style={styles.inboxBadge}>
-              <Text style={styles.inboxBadgeText}>{pendingCount > 9 ? '9+' : pendingCount}</Text>
-            </View>
-          )}
+          <Ionicons name="add-circle-outline" size={26} color={C.text} />
         </TouchableOpacity>
       </View>
 
-      {/* Active daily moment banner */}
-      {activeDailyMoment && (
-        <TouchableOpacity
-          style={styles.momentBanner}
-          onPress={() => navigation.navigate('Upload')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.momentBannerText}>
-            📸  Daily Moment active — {momentTimeLeft}m left!
-          </Text>
-          <Text style={styles.momentBannerCta}>Post now →</Text>
-        </TouchableOpacity>
+      {/* Stories strip */}
+      {(activeDailyMoment || posts.length > 0) && (
+        <View style={styles.storiesStrip}>
+          {activeDailyMoment && (
+            <TouchableOpacity style={styles.storyItem} onPress={() => navigation.navigate('Upload')} activeOpacity={0.85}>
+              <View style={[styles.storyRing, styles.storyRingActive]}>
+                <View style={styles.storyAvatar}>
+                  <Ionicons name="camera" size={22} color={C.white} />
+                </View>
+              </View>
+              <Text style={styles.storyLabel} numberOfLines={1}>Daily{'\n'}Moment</Text>
+              <Text style={styles.storyTimeLeft}>{momentTimeLeft}m</Text>
+            </TouchableOpacity>
+          )}
+          {posts.slice(0, 8).map((p) => (
+            <TouchableOpacity key={p.id} style={styles.storyItem} onPress={() => {}} activeOpacity={0.85}>
+              <View style={[styles.storyRing, (p.sender?.current_streak ?? 0) > 0 && styles.storyRingStreak]}>
+                <View style={[styles.storyAvatar, { backgroundColor: C.surface3 }]}>
+                  {p.sender?.avatar_url ? (
+                    <Image source={{ uri: p.sender.avatar_url }} style={styles.storyAvatarImg} />
+                  ) : (
+                    <Text style={styles.storyAvatarText}>{(p.sender?.display_name?.[0] ?? '?').toUpperCase()}</Text>
+                  )}
+                </View>
+              </View>
+              <Text style={styles.storyLabel} numberOfLines={1}>{p.sender?.display_name?.split(' ')[0] ?? '?'}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       )}
 
       <FlatList
@@ -428,7 +431,6 @@ export default function FeedScreen() {
         }
       />
 
-      <TabBar challengeCount={pendingCount} />
     </SafeAreaView>
   );
 }
@@ -439,116 +441,126 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   loadingRoot: { flex: 1, backgroundColor: C.bg, justifyContent: 'center', alignItems: 'center' },
 
+  // ─── App bar
   appBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 0.5, borderBottomColor: C.border,
+    paddingHorizontal: 16, paddingVertical: 10,
   },
-  appBarTitle: { fontSize: 22, fontWeight: '900', color: C.primary, letterSpacing: -0.5 },
-  inboxBtn: { position: 'relative', padding: 4 },
-  inboxBadge: {
-    position: 'absolute', top: 0, right: 0,
-    backgroundColor: C.error, borderRadius: 8,
-    minWidth: 16, height: 16,
-    justifyContent: 'center', alignItems: 'center', paddingHorizontal: 3,
+  appBarTitle: { fontSize: 26, fontWeight: '900', color: C.text, letterSpacing: -1, fontStyle: 'italic' },
+  uploadBtn: { padding: 4 },
+
+  // ─── Stories strip
+  storiesStrip: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: C.border,
   },
-  inboxBadgeText: { color: C.white, fontSize: 9, fontWeight: '800' },
-
-  momentBanner: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: C.primary, paddingHorizontal: 16, paddingVertical: 10,
+  storyItem: { alignItems: 'center', gap: 4, width: 60 },
+  storyRing: {
+    padding: 2, borderRadius: 36,
+    borderWidth: 2, borderColor: C.surface3,
   },
-  momentBannerText: { fontSize: 13, fontWeight: '700', color: C.white },
-  momentBannerCta: { fontSize: 13, fontWeight: '800', color: C.white, opacity: 0.85 },
-
-  listContent: { paddingBottom: 12 },
-  emptyContainer: { flex: 1 },
-
-  card: { backgroundColor: C.bg, marginBottom: 12, borderBottomWidth: 0.5, borderBottomColor: C.border },
-
-  dailyBanner: {
-    backgroundColor: C.primary, paddingHorizontal: 14, paddingVertical: 5,
-  },
-  dailyBannerText: { fontSize: 11, fontWeight: '900', color: C.white, letterSpacing: 1.5 },
-
-  cardHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 14, paddingVertical: 10, gap: 10,
-  },
-  cardAvatar: {
-    width: 38, height: 38, borderRadius: 19,
+  storyRingActive: { borderColor: C.primary },
+  storyRingStreak: { borderColor: '#FF9F0A' },
+  storyAvatar: {
+    width: 52, height: 52, borderRadius: 26,
     backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center',
     overflow: 'hidden',
   },
-  cardAvatarImage: { width: 38, height: 38, borderRadius: 19 },
-  cardAvatarText: { color: C.white, fontWeight: '800', fontSize: 15 },
+  storyAvatarImg: { width: 52, height: 52, borderRadius: 26 },
+  storyAvatarText: { fontSize: 18, fontWeight: '800', color: C.white },
+  storyLabel: { fontSize: 10, color: C.text2, textAlign: 'center', lineHeight: 13 },
+  storyTimeLeft: {
+    fontSize: 9, color: C.primary, fontWeight: '700',
+    backgroundColor: 'rgba(255,95,31,0.15)', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4,
+  },
+
+  listContent: { paddingBottom: 90 },
+  emptyContainer: { flex: 1, paddingBottom: 90 },
+
+  // ─── Post card
+  card: { backgroundColor: C.bg, marginBottom: 4 },
+
+  cardHeader: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 10, gap: 10,
+  },
+  cardAvatarWrap: { padding: 2, borderRadius: 26, borderWidth: 2, borderColor: 'transparent' },
+  cardAvatarRing: { borderColor: C.primary },
+  cardAvatar: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center',
+    overflow: 'hidden',
+  },
+  cardAvatarImage: { width: 40, height: 40, borderRadius: 20 },
+  cardAvatarText: { color: C.white, fontWeight: '800', fontSize: 16 },
   cardHeaderInfo: { flex: 1 },
   cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   cardName: { fontSize: 14, fontWeight: '700', color: C.text },
-  cardTime: { fontSize: 12, color: C.text3, marginTop: 1 },
-
-  streakPill: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255,95,31,0.14)', borderRadius: R.full,
-    paddingHorizontal: 6, paddingVertical: 2, gap: 2,
-  },
+  cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 1 },
+  cardTime: { fontSize: 12, color: C.text3 },
+  metaDot: { fontSize: 12, color: C.text3 },
   streakFire: { fontSize: 11 },
-  streakCount: { fontSize: 11, fontWeight: '700', color: C.primary },
+  streakCount: { fontSize: 11, fontWeight: '700', color: '#FF9F0A' },
 
-  cardPhoto: { width: '100%', aspectRatio: 1, backgroundColor: C.surface2, position: 'relative' },
+  dailyChip: {
+    backgroundColor: 'rgba(255,95,31,0.18)',
+    borderRadius: R.full, paddingHorizontal: 7, paddingVertical: 2,
+  },
+  dailyChipText: { fontSize: 10, fontWeight: '800', color: C.primary, letterSpacing: 0.3 },
+
+  // ─── Photo
+  cardPhoto: { width: '100%', aspectRatio: 4 / 5, backgroundColor: C.surface2, position: 'relative' },
   cardPhotoExpired: { opacity: 0.55 },
   photo: { width: '100%', height: '100%' },
-  expiredOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-  },
-
-  cardBody: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 12, gap: 8 },
-
-  challengeBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: R.full, borderWidth: 0.5,
-  },
-  challengeBadgeText: { fontSize: 12, fontWeight: '600' },
-
-  caption: { fontSize: 14, color: C.text2, lineHeight: 20 },
-
-  reactionRow: { flexDirection: 'row', gap: 6 },
-  reactionBtn: {
+  expiredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)' },
+  challengeOverlay: {
+    position: 'absolute', bottom: 10, left: 10,
     flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 9, paddingVertical: 4, borderRadius: R.full,
+  },
+  challengeOverlayText: { fontSize: 11, fontWeight: '700', color: C.white },
+
+  // ─── Actions
+  cardActions: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 12, paddingVertical: 10,
+  },
+  reactionsGroup: { flexDirection: 'row', gap: 6 },
+  reactionBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: C.surface, borderRadius: R.full,
-    paddingHorizontal: 10, paddingVertical: 5,
-    borderWidth: 0.5, borderColor: C.border,
+    paddingHorizontal: 9, paddingVertical: 5,
   },
-  reactionBtnActive: {
-    backgroundColor: 'rgba(255,95,31,0.14)',
-    borderColor: 'rgba(255,95,31,0.4)',
-  },
-  reactionEmoji: { fontSize: 15 },
-  reactionCount: { fontSize: 12, fontWeight: '700', color: C.text3 },
+  reactionBtnActive: { backgroundColor: 'rgba(255,95,31,0.15)' },
+  reactionEmoji: { fontSize: 14 },
+  reactionCount: { fontSize: 11, fontWeight: '700', color: C.text3 },
   reactionCountActive: { color: C.primary },
 
-  cardFooter: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2,
-  },
-  expiryLabel: { fontSize: 12, color: C.text3, fontWeight: '600' },
-  expiryLabelUrgent: { color: C.error },
-  expiredLabel: { fontSize: 12, color: C.text3, fontStyle: 'italic' },
-
   guessBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: C.primary, paddingHorizontal: 16, paddingVertical: 7, borderRadius: R.full,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: C.primary, paddingHorizontal: 14, paddingVertical: 7, borderRadius: R.full,
+    shadowColor: C.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.35, shadowRadius: 6, elevation: 4,
   },
   guessBtnText: { color: C.white, fontWeight: '700', fontSize: 13 },
-  guessBtnArrow: { color: C.white, fontSize: 14 },
-
   scorePill: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: R.full,
     borderWidth: 0.5, backgroundColor: C.surface,
   },
   scorePillText: { fontSize: 12, fontWeight: '700' },
+  expiredLabel: { fontSize: 12, color: C.text3 },
 
+  // ─── Caption
+  cardBody: { paddingHorizontal: 12, paddingBottom: 14, gap: 4 },
+  expiryLabel: { fontSize: 12, color: C.text3, fontWeight: '600' },
+  expiryLabelUrgent: { color: C.error },
+  caption: { fontSize: 14, color: C.text2, lineHeight: 20 },
+
+  // ─── Empty
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingTop: 80, gap: 12 },
   emptyIcon: { fontSize: 48 },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: C.text, letterSpacing: -0.3 },

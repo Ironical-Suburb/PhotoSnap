@@ -1,4 +1,5 @@
 export type AppStackParamList = {
+  MainTabs: undefined;
   Feed: undefined;
   Home: undefined;
   Challenges: undefined;
@@ -14,6 +15,7 @@ export type AppStackParamList = {
   FriendStats: { friendId: string; friendName: string };
   Chat: { friendId: string; friendName: string };
   Profile: undefined;
+  Settings: undefined;
   League: undefined;
   Duels: undefined;
   Duel: { duelId: string };

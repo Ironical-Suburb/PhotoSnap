@@ -8,7 +8,6 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
 import type { AppStackParamList } from '../../navigation/types';
-import TabBar from '../../components/TabBar';
 import { C, R } from '../../theme';
 
 type PendingRound = {
@@ -189,7 +188,6 @@ export default function ChallengesScreen() {
         />
       )}
 
-      <TabBar challengeCount={pendingCount} />
     </SafeAreaView>
   );
 }
@@ -233,12 +231,13 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 90,
     gap: 10,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
+    paddingBottom: 90,
   },
   card: {
     backgroundColor: C.surface,

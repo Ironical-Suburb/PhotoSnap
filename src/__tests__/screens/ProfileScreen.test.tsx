@@ -1,19 +1,28 @@
 import React from 'react';
-import { render, waitFor, fireEvent } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 import { makeQueryBuilder } from '../__mocks__/supabase';
 
 jest.mock('../../components/TabBar', () => () => null);
+jest.mock('../../components/EncryptedImage', () => () => null);
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const { useEffect } = require('react');
+  return {
+    useNavigation: () => ({ navigate: mockNavigate }),
+    useFocusEffect: (cb: any) => useEffect(cb, []),
+  };
+});
 
 const mockFrom = jest.fn();
-const mockSignOut = jest.fn().mockResolvedValue({ error: null });
 const mockGetUser = jest.fn().mockResolvedValue({ data: { user: { id: 'u1' } } });
 
 jest.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
       get getUser() { return mockGetUser; },
-      get signOut() { return mockSignOut; },
     },
     get from() { return mockFrom; },
     storage: {
@@ -35,7 +44,13 @@ const MOCK_PROFILE = {
 
 describe('ProfileScreen', () => {
   beforeEach(() => {
-    mockFrom.mockImplementation(() => makeQueryBuilder({ data: MOCK_PROFILE, error: null }));
+    mockNavigate.mockClear();
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'users') return makeQueryBuilder({ data: MOCK_PROFILE, error: null });
+      if (table === 'photos') return makeQueryBuilder({ data: [], error: null });
+      if (table === 'friendships') return makeQueryBuilder({ data: null, error: null, count: 3 });
+      return makeQueryBuilder({ data: null, error: null });
+    });
   });
 
   it('shows the user display name', async () => {
@@ -43,26 +58,23 @@ describe('ProfileScreen', () => {
     await waitFor(() => expect(getAllByText('TestUser').length).toBeGreaterThan(0));
   });
 
-  it('shows edit button', async () => {
+  it('shows streak stat', async () => {
     const { getByText } = render(<ProfileScreen />);
-    await waitFor(() => expect(getByText('Edit')).toBeTruthy());
+    await waitFor(() => expect(getByText('Streak')).toBeTruthy());
   });
 
-  it('shows sign out button', async () => {
+  it('shows posts stat label', async () => {
     const { getByText } = render(<ProfileScreen />);
-    await waitFor(() => expect(getByText('Sign Out')).toBeTruthy());
+    await waitFor(() => expect(getByText('Posts')).toBeTruthy());
   });
 
-  it('calls signOut when sign out is pressed', async () => {
+  it('shows friends stat label', async () => {
     const { getByText } = render(<ProfileScreen />);
-    await waitFor(() => getByText('Sign Out'));
-    fireEvent.press(getByText('Sign Out'));
-    // signOut shows an Alert - just check it was called by verifying the button press works
-    expect(true).toBeTruthy();
+    await waitFor(() => expect(getByText('Friends')).toBeTruthy());
   });
 
-  it('shows streak count', async () => {
+  it('shows Me title in top bar', async () => {
     const { getByText } = render(<ProfileScreen />);
-    await waitFor(() => expect(getByText('5')).toBeTruthy());
+    await waitFor(() => expect(getByText('Me')).toBeTruthy());
   });
 });

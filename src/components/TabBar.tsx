@@ -1,70 +1,79 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
-import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AppStackParamList } from '../navigation/types';
 import { C } from '../theme';
 
-type TabName = 'Feed' | 'Challenges' | 'Upload' | 'Friends' | 'Profile';
+type Nav = NativeStackNavigationProp<AppStackParamList>;
 
-const TABS: { name: TabName; label: string; icon: string; iconActive: string }[] = [
-  { name: 'Feed',       label: 'Feed',    icon: 'home-outline',          iconActive: 'home' },
-  { name: 'Challenges', label: 'Inbox',   icon: 'mail-outline',          iconActive: 'mail' },
-  { name: 'Upload',     label: 'Post',    icon: 'camera',                iconActive: 'camera' },
-  { name: 'Friends',    label: 'Friends', icon: 'people-outline',        iconActive: 'people' },
-  { name: 'Profile',    label: 'Me',      icon: 'person-circle-outline', iconActive: 'person-circle' },
+type TabDef = { label: string; icon: string; iconActive: string };
+
+const TABS: TabDef[] = [
+  { label: 'Feed',    icon: 'home-outline',          iconActive: 'home' },
+  { label: 'Inbox',   icon: 'mail-outline',           iconActive: 'mail' },
+  { label: 'Friends', icon: 'people-outline',         iconActive: 'people' },
+  { label: 'Me',      icon: 'person-circle-outline',  iconActive: 'person-circle' },
 ];
 
-export default function TabBar({ challengeCount = 0 }: { challengeCount?: number }) {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const current = route.name as TabName;
-
-  const goTo = (name: TabName) => {
-    navigation.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name }] })
-    );
-  };
+export default function TabBar({
+  currentPage,
+  onTabPress,
+  challengeCount = 0,
+}: {
+  currentPage: number;
+  onTabPress: (page: number) => void;
+  challengeCount?: number;
+}) {
+  const navigation = useNavigation<Nav>();
 
   return (
     <View style={styles.wrap}>
       <View style={styles.bar}>
-        {TABS.map((tab) => {
-          const active = current === tab.name;
-          const isPost = tab.name === 'Upload';
-
-          if (isPost) {
-            return (
-              <TouchableOpacity
-                key={tab.name}
-                style={styles.snapWrap}
-                onPress={() => goTo(tab.name)}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.snapBtn, active && styles.snapBtnActive]}>
-                  <Ionicons name="camera" size={22} color={C.white} />
-                </View>
-              </TouchableOpacity>
-            );
-          }
-
+        {TABS.slice(0, 2).map((tab, i) => {
+          const active = currentPage === i;
           return (
-            <TouchableOpacity
-              key={tab.name}
-              style={styles.tab}
-              onPress={() => goTo(tab.name)}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity key={tab.label} style={styles.tab} onPress={() => onTabPress(i)} activeOpacity={0.7}>
               <View style={styles.iconWrap}>
                 <Ionicons
                   name={(active ? tab.iconActive : tab.icon) as any}
                   size={23}
                   color={active ? C.primary : C.text3}
                 />
-                {tab.name === 'Challenges' && challengeCount > 0 && (
+                {i === 1 && challengeCount > 0 && (
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>{challengeCount > 9 ? '9+' : challengeCount}</Text>
                   </View>
                 )}
+              </View>
+              <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Upload action button — navigates to stack screen, not a pager page */}
+        <TouchableOpacity
+          style={styles.snapWrap}
+          onPress={() => navigation.navigate('Upload')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.snapBtn}>
+            <Ionicons name="camera" size={22} color={C.white} />
+          </View>
+        </TouchableOpacity>
+
+        {TABS.slice(2).map((tab, i) => {
+          const pageIndex = i + 2;
+          const active = currentPage === pageIndex;
+          return (
+            <TouchableOpacity key={tab.label} style={styles.tab} onPress={() => onTabPress(pageIndex)} activeOpacity={0.7}>
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  name={(active ? tab.iconActive : tab.icon) as any}
+                  size={23}
+                  color={active ? C.primary : C.text3}
+                />
               </View>
               <Text style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
             </TouchableOpacity>
@@ -105,7 +114,6 @@ const styles = StyleSheet.create({
     shadowColor: C.primary, shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.4, shadowRadius: 6, elevation: 6,
   },
-  snapBtnActive: { backgroundColor: '#FF7A45' },
   badge: {
     position: 'absolute', top: -4, right: -8,
     backgroundColor: C.error, borderRadius: 8,

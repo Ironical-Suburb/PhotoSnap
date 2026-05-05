@@ -62,8 +62,9 @@ describe('FeedScreen', () => {
   });
 
   it('renders feed posts with sender name', async () => {
-    const { getByText } = render(<FeedScreen />);
-    await waitFor(() => expect(getByText('Alice')).toBeTruthy());
+    const { getAllByText } = render(<FeedScreen />);
+    // 'Alice' appears in both the stories strip and the card header
+    await waitFor(() => expect(getAllByText('Alice').length).toBeGreaterThan(0));
   });
 
   it('shows post caption', async () => {

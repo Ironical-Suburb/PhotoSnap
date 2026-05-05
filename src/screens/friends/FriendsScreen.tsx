@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity,
+  View, Text, Image, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert, StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +9,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
 import type { AppStackParamList } from '../../navigation/types';
 import type { User } from '../../types';
-import TabBar from '../../components/TabBar';
 import { Ionicons } from '@expo/vector-icons';
 import { C, R } from '../../theme';
 
@@ -151,41 +150,46 @@ export default function FriendsScreen() {
                 friendId: item.other_user.id,
                 friendName: item.other_user.display_name,
               })}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
-              <View style={[styles.avatar, { backgroundColor: avatarColor(item.other_user.display_name) }]}>
-                <Text style={styles.avatarText}>
-                  {(item.other_user.display_name?.[0] ?? '?').toUpperCase()}
-                </Text>
+              <View style={[styles.avatarWrap, { backgroundColor: avatarColor(item.other_user.display_name) }]}>
+                {(item.other_user as any).avatar_url ? (
+                  <Image source={{ uri: (item.other_user as any).avatar_url }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>
+                    {(item.other_user.display_name?.[0] ?? '?').toUpperCase()}
+                  </Text>
+                )}
               </View>
               <View style={styles.info}>
                 <Text style={styles.name}>{item.other_user.display_name}</Text>
-                <Text style={styles.hint}>Tap to view stats</Text>
+                <Text style={styles.hint}>Tap to view stats →</Text>
               </View>
-              <TouchableOpacity
-                style={styles.chatBtn}
-                onPress={() => navigation.navigate('Chat', {
-                  friendId: item.other_user.id,
-                  friendName: item.other_user.display_name,
-                })}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons name="chatbubble-outline" size={18} color={C.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.duelBtn}
-                onPress={() => startDuel(item.other_user.id)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Text style={styles.duelBtnText}>⚔️</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.removeBtn}
-                onPress={() => removeFriend(item.id, item.other_user.display_name)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <Ionicons name="close" size={14} color={C.text3} />
-              </TouchableOpacity>
+              <View style={styles.rowActions}>
+                <TouchableOpacity
+                  style={styles.iconBtn}
+                  onPress={() => navigation.navigate('Chat', {
+                    friendId: item.other_user.id,
+                    friendName: item.other_user.display_name,
+                  })}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="chatbubble-outline" size={20} color={C.text2} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconBtn}
+                  onPress={() => startDuel(item.other_user.id)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={{ fontSize: 18 }}>⚔️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => removeFriend(item.id, item.other_user.display_name)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
+                  <Ionicons name="close-circle" size={20} color={C.text3} />
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
           )}
           ListEmptyComponent={
@@ -203,7 +207,6 @@ export default function FriendsScreen() {
         />
       )}
 
-      <TabBar />
     </SafeAreaView>
   );
 }
@@ -274,78 +277,51 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    gap: 8,
+    paddingBottom: 90,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 16,
+    paddingBottom: 90,
   },
   row: {
-    backgroundColor: C.surface,
-    borderRadius: R.lg,
-    padding: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: C.border,
-    gap: 14,
+    gap: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: C.border,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  avatarWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
   avatarText: {
     color: C.white,
     fontWeight: '800',
-    fontSize: 17,
+    fontSize: 20,
   },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: C.text,
-  },
-  hint: {
-    fontSize: 12,
-    color: C.text3,
-    marginTop: 2,
-  },
-  chatBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: C.primaryMuted,
-    justifyContent: 'center',
+  info: { flex: 1, gap: 2 },
+  name: { fontSize: 15, fontWeight: '700', color: C.text },
+  hint: { fontSize: 12, color: C.text3 },
+  rowActions: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
-  duelBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: C.surface2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  duelBtnText: {
-    fontSize: 16,
-  },
-  removeBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: C.surface2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  iconBtn: { padding: 2 },
   empty: {
     alignItems: 'center',
     gap: 16,
