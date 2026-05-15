@@ -15,6 +15,8 @@ import FriendSearchScreen from '../screens/friends/FriendSearchScreen';
 import FriendRequestsScreen from '../screens/friends/FriendRequestsScreen';
 import FriendStatsScreen from '../screens/friends/FriendStatsScreen';
 import ChatScreen from '../screens/chat/ChatScreen';
+import CommentsScreen from '../screens/game/CommentsScreen';
+import PostDetailScreen from '../screens/game/PostDetailScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import SettingsScreen from '../screens/profile/SettingsScreen';
 import LeagueScreen from '../screens/game/LeagueScreen';
@@ -48,14 +50,16 @@ export default function AppNavigator() {
       <Stack.Screen name="History" component={HistoryScreen} options={{ ...darkHeader, title: 'History' }} />
       <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ ...darkHeader, title: 'Leaderboard' }} />
       <Stack.Screen name="Friends" component={FriendsScreen} />
-      <Stack.Screen name="FriendSearch" component={FriendSearchScreen} options={{ ...darkHeader, title: 'Find Friends' }} />
-      <Stack.Screen name="FriendRequests" component={FriendRequestsScreen} options={{ ...darkHeader, title: 'Friend Requests' }} />
+      <Stack.Screen name="FriendSearch" component={FriendSearchScreen} options={{ ...darkHeader, title: 'Find People' }} />
+      <Stack.Screen name="FriendRequests" component={FriendRequestsScreen} options={{ ...darkHeader, title: 'Follow Requests' }} />
       <Stack.Screen
         name="FriendStats"
         component={FriendStatsScreen}
         options={({ route }) => ({ ...darkHeader, title: `vs ${route.params.friendName}` })}
       />
       <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Comments" component={CommentsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="PostDetail" component={PostDetailScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ ...darkHeader, title: 'Settings', headerShown: false }} />
       <Stack.Screen name="League" component={LeagueScreen} options={{ ...darkHeader, title: 'Accuracy League' }} />

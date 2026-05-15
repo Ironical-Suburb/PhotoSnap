@@ -13,20 +13,21 @@ type TabDef = { label: string; icon: string; iconActive: string };
 const TABS: TabDef[] = [
   { label: 'Feed',    icon: 'home-outline',          iconActive: 'home' },
   { label: 'Inbox',   icon: 'mail-outline',           iconActive: 'mail' },
-  { label: 'Friends', icon: 'people-outline',         iconActive: 'people' },
+  { label: 'People',  icon: 'people-outline',         iconActive: 'people' },
   { label: 'Me',      icon: 'person-circle-outline',  iconActive: 'person-circle' },
 ];
 
 export default function TabBar({
-  currentPage,
+  currentPage = -1,
   onTabPress,
   challengeCount = 0,
 }: {
-  currentPage: number;
-  onTabPress: (page: number) => void;
+  currentPage?: number;
+  onTabPress?: (page: number) => void;
   challengeCount?: number;
 }) {
   const navigation = useNavigation<Nav>();
+  const handleTabPress = onTabPress ?? ((_page: number) => navigation.navigate('MainTabs'));
 
   return (
     <View style={styles.wrap}>
@@ -34,7 +35,7 @@ export default function TabBar({
         {TABS.slice(0, 2).map((tab, i) => {
           const active = currentPage === i;
           return (
-            <TouchableOpacity key={tab.label} style={styles.tab} onPress={() => onTabPress(i)} activeOpacity={0.7}>
+            <TouchableOpacity key={tab.label} style={styles.tab} onPress={() => handleTabPress(i)} activeOpacity={0.7}>
               <View style={styles.iconWrap}>
                 <Ionicons
                   name={(active ? tab.iconActive : tab.icon) as any}
@@ -67,7 +68,7 @@ export default function TabBar({
           const pageIndex = i + 2;
           const active = currentPage === pageIndex;
           return (
-            <TouchableOpacity key={tab.label} style={styles.tab} onPress={() => onTabPress(pageIndex)} activeOpacity={0.7}>
+            <TouchableOpacity key={tab.label} style={styles.tab} onPress={() => handleTabPress(pageIndex)} activeOpacity={0.7}>
               <View style={styles.iconWrap}>
                 <Ionicons
                   name={(active ? tab.iconActive : tab.icon) as any}

@@ -1,7 +1,10 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import messaging from '@react-native-firebase/messaging';
+import Constants from 'expo-constants';
 import { supabase } from './supabase';
+
+const isExpoGo = Constants.appOwnership === 'expo';
+const messaging = isExpoGo ? null : require('@react-native-firebase/messaging').default;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -20,6 +23,8 @@ export async function registerForPushNotifications(): Promise<void> {
       importance: Notifications.AndroidImportance.MAX,
     });
   }
+
+  if (!messaging) return;
 
   const authStatus = await messaging().requestPermission();
   const granted =

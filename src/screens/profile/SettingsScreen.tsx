@@ -16,6 +16,8 @@ export default function SettingsScreen() {
   const [profile, setProfile] = useState<User | null>(null);
   const [backupEnabled, setBackupEnabled] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [privacyLoading, setPrivacyLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,8 +31,27 @@ export default function SettingsScreen() {
     if (data) {
       setProfile(data as User);
       setBackupEnabled(data.backup_enabled ?? false);
+      setIsPrivate(data.is_private ?? false);
     }
     setLoading(false);
+  }
+
+  async function togglePrivacy(enabled: boolean) {
+    if (!profile) return;
+    setPrivacyLoading(true);
+    const prev = isPrivate;
+    setIsPrivate(enabled);
+    const { error } = await supabase
+      .from('users')
+      .update({ is_private: enabled })
+      .eq('id', profile.id);
+    if (error) {
+      setIsPrivate(prev);
+      Alert.alert('Error', error.message);
+    } else {
+      setProfile((p) => p ? { ...p, is_private: enabled } : p);
+    }
+    setPrivacyLoading(false);
   }
 
   async function toggleBackup(enabled: boolean) {
@@ -115,6 +136,27 @@ export default function SettingsScreen() {
         {/* Privacy section */}
         <Text style={styles.sectionLabel}>PRIVACY & SECURITY</Text>
         <View style={styles.card}>
+          <View style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text style={styles.rowLabel}>PRIVATE ACCOUNT</Text>
+              <Text style={styles.rowSubValue}>
+                {isPrivate
+                  ? 'Only approved followers can see your posts'
+                  : 'Anyone can follow you and see your posts'}
+              </Text>
+            </View>
+            {privacyLoading ? (
+              <ActivityIndicator color={C.primary} size="small" style={{ marginLeft: 8 }} />
+            ) : (
+              <Switch
+                value={isPrivate}
+                onValueChange={togglePrivacy}
+                trackColor={{ false: C.surface3, true: C.primary }}
+                thumbColor={C.white}
+              />
+            )}
+          </View>
+          <View style={styles.divider} />
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Text style={styles.rowLabel}>KEY BACKUP</Text>

@@ -17,6 +17,7 @@ type Nav = NativeStackNavigationProp<AppStackParamList>;
 
 type PostWithRound = FeedPost & {
   my_round?: { id: string; score: number | null; resolved_at: string | null } | null;
+  post_comments?: { count: number }[];
 };
 
 const REACTION_EMOJIS = ['🔥', '😂', '😮', '💀'] as const;
@@ -68,11 +69,13 @@ function PostCard({
   currentUserId,
   onGuessTap,
   onReactionTap,
+  onCommentTap,
 }: {
   post: PostWithRound;
   currentUserId: string;
   onGuessTap: (post: PostWithRound) => void;
   onReactionTap: (post: PostWithRound, emoji: Emoji) => void;
+  onCommentTap: (post: PostWithRound) => void;
 }) {
   const navigation = useNavigation<Nav>();
   const badge = challengeBadge(post.challenge_type);
@@ -166,6 +169,16 @@ function PostCard({
               )}
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={styles.reactionBtn}
+            onPress={() => onCommentTap(post)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chatbubble-outline" size={14} color={C.text3} />
+            {(post.post_comments_count ?? 0) > 0 && (
+              <Text style={styles.reactionCount}>{post.post_comments_count}</Text>
+            )}
+          </TouchableOpacity>
         </View>
 
         {hasChallenge && !isOwn && (
@@ -195,6 +208,13 @@ function PostCard({
         {post.caption ? (
           <Text style={styles.caption} numberOfLines={2}>{post.caption}</Text>
         ) : null}
+        {(post.post_comments_count ?? 0) > 0 && (
+          <TouchableOpacity onPress={() => onCommentTap(post)} activeOpacity={0.7}>
+            <Text style={styles.viewComments}>
+              View {post.post_comments_count === 1 ? '1 comment' : `all ${post.post_comments_count} comments`}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -231,12 +251,12 @@ export default function FeedScreen() {
       if (!user) return;
       setCurrentUserId(user.id);
 
-      const [{ data: friendships }, { data: momentData }] = await Promise.all([
+      const [{ data: follows }, { data: momentData }] = await Promise.all([
         supabase
-          .from('friendships')
-          .select('sender_id, receiver_id')
-          .eq('status', 'accepted')
-          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`),
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', user.id)
+          .eq('status', 'active'),
         supabase
           .from('daily_moments')
           .select('*')
@@ -247,10 +267,8 @@ export default function FeedScreen() {
 
       setActiveDailyMoment((momentData as DailyMoment | null) ?? null);
 
-      const friendIds = (friendships ?? []).map((f) =>
-        f.sender_id === user.id ? f.receiver_id : f.sender_id
-      );
-      const senderIds = [...new Set([...friendIds, user.id])];
+      const followingIds = (follows ?? []).map((f) => f.following_id);
+      const senderIds = [...new Set([...followingIds, user.id])];
 
       const { data: rawPosts } = await supabase
         .from('photos')
@@ -258,7 +276,8 @@ export default function FeedScreen() {
           *,
           sender:users!sender_id(id, display_name, avatar_url, current_streak),
           post_likes(id, user_id),
-          post_reactions(id, user_id, emoji)
+          post_reactions(id, user_id, emoji),
+          post_comments(count)
         `)
         .eq('is_post', true)
         .in('sender_id', senderIds)
@@ -282,7 +301,11 @@ export default function FeedScreen() {
       );
 
       setPosts(
-        (rawPosts as any[]).map((p) => ({ ...p, my_round: roundByPostId[p.id] ?? null }))
+        (rawPosts as any[]).map((p) => ({
+          ...p,
+          my_round: roundByPostId[p.id] ?? null,
+          post_comments_count: p.post_comments?.[0]?.count ?? 0,
+        }))
       );
 
       const { count } = await supabase
@@ -315,6 +338,10 @@ export default function FeedScreen() {
     }
 
     navigation.navigate('Guess', { roundId });
+  }
+
+  function handleCommentTap(post: PostWithRound) {
+    navigation.navigate('Comments', { postId: post.id });
   }
 
   async function handleReactionTap(post: PostWithRound, emoji: Emoji) {
@@ -412,6 +439,7 @@ export default function FeedScreen() {
             currentUserId={currentUserId}
             onGuessTap={handleGuessTap}
             onReactionTap={handleReactionTap}
+            onCommentTap={handleCommentTap}
           />
         )}
         refreshControl={
@@ -559,6 +587,7 @@ const styles = StyleSheet.create({
   expiryLabel: { fontSize: 12, color: C.text3, fontWeight: '600' },
   expiryLabelUrgent: { color: C.error },
   caption: { fontSize: 14, color: C.text2, lineHeight: 20 },
+  viewComments: { fontSize: 13, color: C.text3, marginTop: 2 },
 
   // ─── Empty
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingTop: 80, gap: 12 },

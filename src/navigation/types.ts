@@ -9,11 +9,13 @@ export type AppStackParamList = {
   Leaderboard: undefined;
   SentChallenges: undefined;
   History: undefined;
-  Friends: undefined;
+  Friends: { initialTab?: 'followers' | 'following' } | undefined;
   FriendSearch: undefined;
   FriendRequests: undefined;
   FriendStats: { friendId: string; friendName: string };
   Chat: { friendId: string; friendName: string };
+  Comments: { postId: string };
+  PostDetail: { postId: string };
   Profile: undefined;
   Settings: undefined;
   League: undefined;

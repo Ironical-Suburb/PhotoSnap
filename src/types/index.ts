@@ -3,6 +3,8 @@ export type User = {
   email: string;
   display_name: string;
   avatar_url?: string;
+  cover_url?: string;
+  is_private?: boolean;
   created_at: string;
   backup_enabled?: boolean;
   push_token?: string;
@@ -12,6 +14,15 @@ export type User = {
 };
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'rejected';
+
+export type FollowStatus = 'active' | 'pending';
+
+export type Follow = {
+  follower_id: string;
+  following_id: string;
+  status: FollowStatus;
+  created_at?: string;
+};
 
 export type Friendship = {
   id: string;
@@ -68,6 +79,24 @@ export type PostReaction = {
   created_at: string;
 };
 
+export type CommentLike = {
+  comment_id: string;
+  user_id: string;
+  value: 1 | -1;
+  created_at?: string;
+};
+
+export type PostComment = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+  parent_id?: string | null;
+  user?: Pick<User, 'id' | 'display_name' | 'avatar_url'>;
+  comment_likes?: CommentLike[];
+};
+
 export type DailyMoment = {
   id: string;
   triggered_at: string;
@@ -79,6 +108,7 @@ export type FeedPost = Photo & {
   sender: Pick<User, 'id' | 'display_name' | 'avatar_url' | 'current_streak'>;
   post_likes: PostLike[];
   post_reactions: PostReaction[];
+  post_comments_count?: number;
 };
 
 export type DuelStatus = 'pending' | 'active' | 'complete' | 'rejected';

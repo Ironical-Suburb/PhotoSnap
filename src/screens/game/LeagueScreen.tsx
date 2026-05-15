@@ -62,16 +62,14 @@ export default function LeagueScreen() {
     const d = new Date(weekStart);
     setWeekLabel(`Week of ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
 
-    const { data: friendships } = await supabase
-      .from('friendships')
-      .select('sender_id, receiver_id')
-      .eq('status', 'accepted')
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+    const { data: follows } = await supabase
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id', user.id)
+      .eq('status', 'active');
 
-    const friendIds = (friendships ?? []).map((f) =>
-      f.sender_id === user.id ? f.receiver_id : f.sender_id
-    );
-    const allIds = [user.id, ...friendIds];
+    const followingIds = (follows ?? []).map((f) => f.following_id);
+    const allIds = [user.id, ...followingIds];
 
     const [{ data: rounds }, { data: profiles }] = await Promise.all([
       supabase

@@ -6,14 +6,15 @@ import {
 import { supabase } from '../../lib/supabase';
 import { C, R } from '../../theme';
 
-type Mode = 'signin' | 'signup' | 'verify';
+type Mode = 'signin' | 'signup' | 'verify' | 'forgot' | 'reset';
 
 export default function LoginScreen() {
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [otp, setOtp]           = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [mode, setMode]         = useState<Mode>('signin');
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [otp, setOtp]                 = useState('');
+  const [loading, setLoading]         = useState(false);
+  const [mode, setMode]               = useState<Mode>('signin');
 
   async function signIn() {
     setLoading(true);
@@ -28,13 +29,22 @@ export default function LoginScreen() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     setLoading(false);
     if (error) {
       Alert.alert('Sign-up failed', error.message);
       return;
     }
-    // Supabase sends a 6-digit code to the email — show OTP entry screen
+    // Supabase doesn't return an error for existing emails (to prevent enumeration),
+    // but it returns a user with an empty `identities` array in that case.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      Alert.alert(
+        'Account already exists',
+        'An account with this email already exists. Please sign in instead.',
+        [{ text: 'Sign In', onPress: () => { setMode('signin'); setPassword(''); } }],
+      );
+      return;
+    }
     setMode('verify');
   }
 
@@ -60,6 +70,53 @@ export default function LoginScreen() {
     setLoading(false);
     if (error) Alert.alert('Error', error.message);
     else Alert.alert('Code resent', 'Check your email for a new 6-digit code.');
+  }
+
+  async function sendResetCode() {
+    if (!email) {
+      Alert.alert('Missing email', 'Please enter your email address.');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    setLoading(false);
+    if (error) {
+      Alert.alert('Error', error.message);
+      return;
+    }
+    setOtp('');
+    setNewPassword('');
+    setMode('reset');
+  }
+
+  async function resetPassword() {
+    if (otp.length !== 6) {
+      Alert.alert('Invalid code', 'Please enter the 6-digit code from your email.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Weak password', 'Password must be at least 6 characters.');
+      return;
+    }
+    setLoading(true);
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'recovery',
+    });
+    if (verifyError) {
+      setLoading(false);
+      Alert.alert('Verification failed', verifyError.message);
+      return;
+    }
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    setLoading(false);
+    if (updateError) {
+      Alert.alert('Couldn’t update password', updateError.message);
+      return;
+    }
+    Alert.alert('Password updated', 'You are now signed in with your new password.');
+    // Session is already active from verifyOtp; App.tsx will route to the main app.
   }
 
   // ─── OTP verification screen ────────────────────────────────────────────────
@@ -115,6 +172,123 @@ export default function LoginScreen() {
 
             <TouchableOpacity style={styles.backBtn} onPress={() => { setMode('signup'); setOtp(''); }}>
               <Text style={styles.backBtnText}>← Back</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ─── Forgot password: enter email ───────────────────────────────────────────
+  if (mode === 'forgot') {
+    return (
+      <KeyboardAvoidingView style={styles.root} behavior="padding">
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.hero}>
+            <Image source={require('../../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
+            <Text style={styles.tagline}>Send a photo. Let them guess when.</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Reset password</Text>
+            <Text style={styles.verifySubtitle}>
+              Enter your email and we'll send you a 6-digit code to reset your password.
+            </Text>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>EMAIL</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="you@example.com"
+                placeholderTextColor={C.text3}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                selectionColor={C.primary}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.primaryBtn, loading && styles.btnDisabled]}
+              onPress={sendResetCode}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.primaryBtnText}>
+                {loading ? 'Sending…' : 'Send reset code'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.backBtn} onPress={() => setMode('signin')}>
+              <Text style={styles.backBtnText}>← Back to sign in</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // ─── Forgot password: enter code + new password ─────────────────────────────
+  if (mode === 'reset') {
+    return (
+      <KeyboardAvoidingView style={styles.root} behavior="padding">
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.hero}>
+            <Image source={require('../../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
+            <Text style={styles.tagline}>Send a photo. Let them guess when.</Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Set a new password</Text>
+            <Text style={styles.verifySubtitle}>
+              We sent a 6-digit code to{'\n'}
+              <Text style={styles.verifyEmail}>{email}</Text>
+            </Text>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>CONFIRMATION CODE</Text>
+              <TextInput
+                style={[styles.input, styles.otpInput]}
+                placeholder="000000"
+                placeholderTextColor={C.text3}
+                value={otp}
+                onChangeText={(t) => setOtp(t.replace(/\D/g, '').slice(0, 6))}
+                keyboardType="number-pad"
+                maxLength={6}
+                autoFocus
+                selectionColor={C.primary}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>NEW PASSWORD</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor={C.text3}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+                selectionColor={C.primary}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.primaryBtn, (loading || otp.length !== 6 || newPassword.length < 6) && styles.btnDisabled]}
+              onPress={resetPassword}
+              disabled={loading || otp.length !== 6 || newPassword.length < 6}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.primaryBtnText}>
+                {loading ? 'Updating…' : 'Update password'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.backBtn} onPress={() => { setMode('signin'); setOtp(''); setNewPassword(''); }}>
+              <Text style={styles.backBtnText}>← Back to sign in</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -179,6 +353,12 @@ export default function LoginScreen() {
               {loading ? 'Please wait…' : mode === 'signin' ? 'Sign In' : 'Create Account'}
             </Text>
           </TouchableOpacity>
+
+          {mode === 'signin' && (
+            <TouchableOpacity style={styles.forgotBtn} onPress={() => setMode('forgot')}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.switchRow}>
             <Text style={styles.switchText}>
@@ -307,6 +487,15 @@ const styles = StyleSheet.create({
     color: C.primary,
     fontSize: 14,
     fontWeight: '700',
+  },
+  forgotBtn: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  forgotText: {
+    color: C.text2,
+    fontSize: 13,
+    fontWeight: '600',
   },
   backBtn: {
     marginTop: 16,
